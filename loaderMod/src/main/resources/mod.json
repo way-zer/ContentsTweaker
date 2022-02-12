@@ -1,0 +1,8 @@
+{
+  "name": "ContentsLoader",
+  "author": "WayZer",
+  "main": "cf.wayzer.contentsMod.ContentLoader",
+  "description": "Dynamic load custom contents package account to server",
+  "version": "0.1",
+  "minGameVersion": 105
+}
