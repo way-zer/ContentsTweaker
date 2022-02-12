@@ -15,6 +15,14 @@ dependencies {
     }
 }
 
+tasks.withType<ProcessResources> {
+    inputs.property("version", rootProject.version)
+    filter(
+        filterType = org.apache.tools.ant.filters.ReplaceTokens::class,
+        properties = mapOf("tokens" to mapOf("version" to rootProject.version))
+    )
+}
+
 tasks.withType(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class.java) {
     configurations = listOf(project.configurations.runtimeClasspath.get())
     minimize()

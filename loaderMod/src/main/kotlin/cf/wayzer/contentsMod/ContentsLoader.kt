@@ -6,6 +6,7 @@ import mindustry.Vars
 import mindustry.content.flood.Blocks
 import mindustry.content.flood.Bullets
 import mindustry.content.flood.UnitTypes
+import mindustry.ctype.Content
 import mindustry.ctype.ContentList
 import mindustry.ctype.ContentType
 import mindustry.game.EventType.ResetEvent
@@ -17,16 +18,32 @@ import kotlin.system.measureTimeMillis
 class ContentsLoader : Mod() {
     override fun init() {
         Events.on(ResetEvent::class.java) {
-            if (MyContentLoader.contents.all { it.content == it.lastContent }) return@on
+            //fastPath
+            if (MyContentLoader.contents.all { it.content == it.lastContent }) {
+                MyContentLoader.contents.forEach { it.content = it.default }
+                return@on
+            }
             MyContentLoader.contents.forEach {
                 val time = measureTimeMillis { it.load() }
                 Log.infoTag("ContentsLoader", "Loaded ${it.lastContent!!::class.qualifiedName} costs ${time}ms")
             }
+            if (!Vars.headless) {
+                val timeLoadIcon = measureTimeMillis {
+                    MyContentLoader.contents.forEach { it.contentMap.forEach(Content::loadIcon) }
+                }
+                Log.infoTag("ContentsLoader", "Content.loadIcon costs ${timeLoadIcon}ms")
+                val timeLoad = measureTimeMillis {
+                    MyContentLoader.contents.forEach { it.contentMap.forEach(Content::load) }
+                }
+                Log.infoTag("ContentsLoader", "Content.load costs ${timeLoad}ms")
+            }
         }
         Vars.content = MyContentLoader
         Vars.netClient.addPacketHandler("ContentsLoader|load") {
+            Log.infoTag("ContentsLoader", "ToLoad $it")
             Call.serverPacketReliable("ContentsLoader|load", loadType(it))
         }
+        Log.infoTag("ContentsLoader", "Finish Load Mod")
     }
 
     @Suppress("unused", "MemberVisibilityCanBePrivate")

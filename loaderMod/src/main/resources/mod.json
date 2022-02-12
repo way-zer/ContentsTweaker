@@ -1,8 +1,10 @@
 {
   "name": "ContentsLoader",
+  "displayName": "内容包动态加载器",
   "author": "WayZer",
-  "main": "cf.wayzer.contentsMod.ContentLoader",
+  "main": "cf.wayzer.contentsMod.ContentsLoader",
   "description": "Dynamic load custom contents package account to server",
-  "version": "0.1",
+  "version": "@version@",
+  "hidden": true,
   "minGameVersion": 105
 }

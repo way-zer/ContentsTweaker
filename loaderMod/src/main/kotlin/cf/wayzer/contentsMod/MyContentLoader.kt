@@ -14,7 +14,7 @@ import mindustry.io.SaveVersion
 import mindustry.mod.Mods
 
 object MyContentLoader : ContentLoader() {
-    class ContentContainer(val type: ContentType, private val default: ContentList) {
+    class ContentContainer(val type: ContentType, val default: ContentList) {
         var content: ContentList = default
         var lastContent: ContentList? = null
             private set
