@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     kotlin("jvm")
     id("com.github.johnrengelman.shadow") version "7.1.2"
@@ -23,7 +25,15 @@ tasks.withType<ProcessResources> {
     )
 }
 
-tasks.withType(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class.java) {
+val shadowTask: ShadowJar = tasks.withType(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class.java) {
     configurations = listOf(project.configurations.runtimeClasspath.get())
     minimize()
+}.first()
+
+tasks.create("dist", Copy::class.java) {
+    dependsOn(shadowTask)
+    from(shadowTask.archiveFile){
+        rename { "ContentsLoader-${rootProject.version}.jar" }
+    }
+    into(buildDir.resolve("dist"))
 }

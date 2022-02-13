@@ -1,0 +1,31 @@
+name-template: 'v$RESOLVED_VERSION 🌈'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: ':sparkles: 新功能'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 BUG 修复'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: ':wrench: 其他杂项'
+    label: 'chore'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+template: |
+  ## 更新内容
+  
+  $CHANGES
