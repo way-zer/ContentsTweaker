@@ -3,9 +3,6 @@ package cf.wayzer.contentsMod
 import arc.Events
 import arc.util.Log
 import mindustry.Vars
-import mindustry.content.flood.Blocks
-import mindustry.content.flood.Bullets
-import mindustry.content.flood.UnitTypes
 import mindustry.ctype.Content
 import mindustry.ctype.ContentList
 import mindustry.ctype.ContentType
@@ -58,17 +55,6 @@ class ContentsLoader : Mod() {
             c.content = list
         }
 
-        fun loadType(type: String) = when (type.lowercase()) {
-            "flood" -> {
-                overwriteContents(ContentType.block, Blocks())
-                overwriteContents(ContentType.bullet, Bullets())
-                overwriteContents(ContentType.unit, UnitTypes())
-                "OK"
-            }
-            else -> {
-                Log.infoTag("ContentsLoader", "Unknown contents type $type")
-                "NOTFOUND"
-            }
-        }
+        fun loadType(type: String) = Contents.loadType(type)
     }
 }
