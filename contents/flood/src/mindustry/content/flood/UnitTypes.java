@@ -539,6 +539,7 @@ public class UnitTypes implements ContentList{
             range = 140f;
             faceTarget = false;
             circleTarget = true;
+//            creeperDeposit = 4f;
             ammoType = new ItemAmmoType(Items.coal);
 
             weapons.add(new Weapon(){{
@@ -548,6 +549,7 @@ public class UnitTypes implements ContentList{
                 ejectEffect = Fx.none;
                 shootSound = Sounds.explosion;
                 bullet = new ArtilleryBulletType(25f, 0f, "clear"){{
+//                    isCreeper = true;
                     hitEffect = Fx.pulverize;
                     lifetime = 10f;
                     speed = 0.1f;
@@ -578,6 +580,7 @@ public class UnitTypes implements ContentList{
             legMoveSpace = 1.4f;
             hovering = true;
             armor = 3f;
+//            creeperDeposit = 7f;
             ammoType = new ItemAmmoType(Items.coal);
 
             visualElevation = 0.2f;
@@ -609,6 +612,7 @@ public class UnitTypes implements ContentList{
             speed = 0.4f;
             drag = 0.4f;
             hitSize = 12f;
+//            creeperDeposit = 7f;
             rotateSpeed = 3f;
             health = 940;
             immunities = ObjectSet.with(StatusEffects.burning, StatusEffects.melting);
@@ -678,6 +682,7 @@ public class UnitTypes implements ContentList{
             drag = 0.1f;
             speed = 0.5f;
             hitSize = 21f;
+//            creeperDeposit = 5f;
             health = 8000;
             armor = 6f;
             targetAir = false;
@@ -784,6 +789,7 @@ public class UnitTypes implements ContentList{
             drag = 0.1f;
             speed = 0.5f;
             hitSize = 21f;
+//            creeperDeposit = 9f;
             health = 22000;
             armor = 13f;
             lightRadius = 140f;
@@ -923,6 +929,7 @@ public class UnitTypes implements ContentList{
             playerTargetFlags = new BlockFlag[]{null};
             targetFlags = new BlockFlag[]{BlockFlag.generator, null};
             circleTarget = true;
+//            creeperResistance = 0.2f;
 
             weapons.add(new Weapon(){{
                 y = 0f;
@@ -959,6 +966,7 @@ public class UnitTypes implements ContentList{
             playerTargetFlags = new BlockFlag[]{null};
             targetFlags = new BlockFlag[]{BlockFlag.factory, null};
             circleTarget = true;
+//            creeperResistance = 1f;
             ammoType = new ItemAmmoType(Items.graphite);
 
             weapons.add(new Weapon(){{
@@ -999,6 +1007,7 @@ public class UnitTypes implements ContentList{
             targetFlags = new BlockFlag[]{BlockFlag.launchPad, BlockFlag.storage, BlockFlag.battery, null};
             engineOffset = 12f;
             engineSize = 3f;
+//            creeperResistance = 0.4f;
             ammoType = new ItemAmmoType(Items.graphite);
 
             weapons.add(new Weapon("zenith-missiles"){{

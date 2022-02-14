@@ -833,6 +833,7 @@ public class Blocks implements ContentList{
             size = 1;
             reload = 200f;
             range = 40f;
+//            healAmount = 8f;
             healPercent = 1f;
             phaseBoost = 4f;
             phaseRangeBoost = 20f;
@@ -846,6 +847,7 @@ public class Blocks implements ContentList{
             size = 2;
             reload = 250f;
             range = 85f;
+//            healAmount = 16f;
             healPercent = 2.5f;
             phaseBoost = 15f;
             health = 80 * size * size;
@@ -1653,7 +1655,6 @@ public class Blocks implements ContentList{
                 Liquids.oil, Bullets.heavyOilShot
             );
             size = 3;
-            recoilAmount = 0f;
             reloadTime = 2f;
             shots = 2;
             velocityInaccuracy = 0.1f;
@@ -1757,7 +1758,7 @@ public class Blocks implements ContentList{
         }};
 
         foreshadow = new ItemTurret("foreshadow"){{
-            float brange = range = 500f;
+            range = 500f;
 
             requirements(Category.turret, with(Items.copper, 1000, Items.metaglass, 600, Items.surgeAlloy, 300, Items.plastanium, 200, Items.silicon, 600));
 
@@ -2081,6 +2082,10 @@ public class Blocks implements ContentList{
             size = 3;
         }};
 
+        //deprecated, will be removed.
+        blockForge = constructor;
+        blockLoader = payloadLoader;
+        blockUnloader = payloadUnloader;
 
         //endregion
         //region sandbox
