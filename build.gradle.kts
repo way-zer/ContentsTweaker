@@ -3,4 +3,4 @@ plugins {
 }
 
 group = "cf.wayzer.mindustryContents"
-version = "1.0-SNAPSHOT"
+version = System.getenv().getOrDefault("VERSION", "1.0-SNAPSHOT")

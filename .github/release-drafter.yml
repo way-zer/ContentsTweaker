@@ -1,0 +1,36 @@
+name-template: 'v$RESOLVED_VERSION 🌈'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: ':sparkles: MOD更新'
+    labels: ['mod']
+  - title: ':sparkles: 新内容包'
+    labels: ['contents:new']
+  - title: ':wrench: 洪水模式 Flood'
+    labels: ['contents:flood']
+autolabeler:
+  - label: 'contents:flood'
+    files:
+      - 'contents/flood/**'
+  - label: 'contents:new'
+    files:
+      - 'loaderMod/src/main/kotlin/cf/wayzer/contentsMod/Contents.kt'
+  - label: 'mod'
+    files:
+      - 'loaderMod/**/!(Contents.kt)'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+template: |
+  ## 更新内容
+  
+  $CHANGES
