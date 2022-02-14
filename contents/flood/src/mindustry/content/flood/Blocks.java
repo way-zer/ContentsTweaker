@@ -1413,8 +1413,8 @@ public class Blocks implements ContentList{
         duo = new ItemTurret("duo"){{
             requirements(Category.turret, with(Items.copper, 35), true);
             ammo(
-            Items.copper, Bullets.standardDense,
-            Items.graphite, Bullets.standardThorium,
+            Items.copper, Bullets.standardCopper,
+            Items.graphite, Bullets.standardDense,
             Items.pyratite, Bullets.standardIncendiary,
             Items.silicon, Bullets.standardHoming
             );
@@ -1516,12 +1516,12 @@ public class Blocks implements ContentList{
 
         lancer = new PowerTurret("lancer"){{
             requirements(Category.turret, with(Items.copper, 60, Items.lead, 70, Items.silicon, 50));
-            range = 90f;
+            range = 180f;
             chargeTime = 40f;
             chargeMaxDelay = 30f;
             chargeEffects = 7;
             recoilAmount = 2f;
-            reloadTime = 80f;
+            reloadTime = 160f;
             cooldown = 0.03f;
             powerUse = 6f;
             shootShake = 2f;
@@ -1592,7 +1592,7 @@ public class Blocks implements ContentList{
                 Items.pyratite, Bullets.missileIncendiary,
                 Items.surgeAlloy, Bullets.missileSurge
             );
-            reloadTime = 30f;
+            reloadTime = 25f;
             shots = 5;
             burstSpacing = 4;
             inaccuracy = 10f;
@@ -1617,7 +1617,7 @@ public class Blocks implements ContentList{
 
             size = 2;
             range = 230f;
-            reloadTime = 20f;
+            reloadTime = 30f;
             restitution = 0.03f;
             ammoEjectBack = 3f;
             cooldown = 0.03f;
@@ -1655,6 +1655,7 @@ public class Blocks implements ContentList{
                 Liquids.oil, Bullets.heavyOilShot
             );
             size = 3;
+            recoilAmount = 0f;
             reloadTime = 2f;
             shots = 2;
             velocityInaccuracy = 0.1f;
@@ -1670,9 +1671,9 @@ public class Blocks implements ContentList{
         }};
 
         fuse = new ItemTurret("fuse"){{
-            requirements(Category.turret, with(Items.copper, 455, Items.graphite, 275, Items.thorium, 150));
+            requirements(Category.turret, with(Items.copper, 225, Items.graphite, 225, Items.thorium, 100));
 
-            reloadTime = 180f;
+            reloadTime = 20f;
             shootShake = 4f;
             range = 90f;
             recoilAmount = 5f;
@@ -1688,20 +1689,20 @@ public class Blocks implements ContentList{
             float brange = range + 10f;
 
             ammo(
-            Items.titanium, new ShrapnelBulletType(){{
-                length = brange;
-                damage = 85f;
-                ammoMultiplier = 2f;
-                width = 17f;
-                reloadMultiplier = 1.5f;
-            }},
-            Items.thorium, new ShrapnelBulletType(){{
-                length = brange;
-                damage = 150f;
-                ammoMultiplier = 1f;
-                toColor = Pal.thoriumPink;
-                shootEffect = smokeEffect = Fx.thoriumShoot;
-            }}
+                Items.titanium, new ShrapnelBulletType(){{
+                    length = brange;
+                    damage = 10f;
+                    ammoMultiplier = 2f;
+                    width = 17f;
+                    reloadMultiplier = 1.3f;
+                }},
+                Items.thorium, new ShrapnelBulletType(){{
+                    length = brange;
+                    damage = 25f;
+                    ammoMultiplier = 2f;
+                    toColor = Pal.thoriumPink;
+                    shootEffect = smokeEffect = Fx.thoriumShoot;
+                }}
             );
         }};
 

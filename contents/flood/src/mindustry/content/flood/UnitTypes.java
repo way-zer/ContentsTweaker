@@ -261,7 +261,7 @@ public class UnitTypes implements ContentList{
 
                 bullet = new LaserBoltBulletType(5.2f, 13){{
                     lifetime = 30f;
-                    healPercent = 5f;
+                    healPercent = 2f;
                     collidesTeam = true;
                     backColor = Pal.heal;
                     frontColor = Color.white;
@@ -308,7 +308,7 @@ public class UnitTypes implements ContentList{
                     lightningLengthRand = 7;
                     shootEffect = Fx.shootHeal;
                     //Does not actually do anything; Just here to make stats work
-                    healPercent = 2f;
+                    healPercent = 1f;
 
                     lightningType = new BulletType(0.0001f, 0f){{
                         lifetime = Fx.lightning.lifetime;
@@ -317,7 +317,7 @@ public class UnitTypes implements ContentList{
                         status = StatusEffects.shocked;
                         statusDuration = 10f;
                         hittable = false;
-                        healPercent = 2f;
+                        healPercent = 1f;
                         collidesTeam = true;
                     }};
                 }};
@@ -360,7 +360,7 @@ public class UnitTypes implements ContentList{
                     sideAngle = 45f;
                     sideWidth = 1f;
                     sideLength = 70f;
-                    healPercent = 10f;
+                    healPercent = 5f;
                     collidesTeam = true;
                     length = 135f;
                     colors = new Color[]{Pal.heal.cpy().a(0.4f), Pal.heal, Color.white};
@@ -430,7 +430,7 @@ public class UnitTypes implements ContentList{
                     incendAmount = 1;
 
                     //constant healing
-                    healPercent = 0.7f;
+                    healPercent = 0.4f;
                     collidesTeam = true;
 
                     colors = new Color[]{Pal.heal.cpy().a(.2f), Pal.heal.cpy().a(.5f), Pal.heal.cpy().mul(1.2f), Color.white};
@@ -503,17 +503,17 @@ public class UnitTypes implements ContentList{
                     lifetime = 65f;
 
                     lightningSpacing = 35f;
-                    lightningLength = 5;
+                    lightningLength = 13;
                     lightningDelay = 1.1f;
                     lightningLengthRand = 15;
-                    lightningDamage = 50;
+                    lightningDamage = 65;
                     lightningAngleRand = 40f;
                     largeHit = true;
                     lightColor = lightningColor = Pal.heal;
 
                     shootEffect = Fx.greenLaserCharge;
 
-                    healPercent = 25f;
+                    healPercent = 50f;
                     collidesTeam = true;
 
                     sideAngle = 15f;
@@ -539,7 +539,6 @@ public class UnitTypes implements ContentList{
             range = 140f;
             faceTarget = false;
             circleTarget = true;
-//            creeperDeposit = 4f;
             ammoType = new ItemAmmoType(Items.coal);
 
             weapons.add(new Weapon(){{
@@ -549,7 +548,6 @@ public class UnitTypes implements ContentList{
                 ejectEffect = Fx.none;
                 shootSound = Sounds.explosion;
                 bullet = new ArtilleryBulletType(25f, 0f, "clear"){{
-//                    isCreeper = true;
                     hitEffect = Fx.pulverize;
                     lifetime = 10f;
                     speed = 0.1f;
@@ -580,7 +578,6 @@ public class UnitTypes implements ContentList{
             legMoveSpace = 1.4f;
             hovering = true;
             armor = 3f;
-//            creeperDeposit = 7f;
             ammoType = new ItemAmmoType(Items.coal);
 
             visualElevation = 0.2f;
@@ -612,7 +609,6 @@ public class UnitTypes implements ContentList{
             speed = 0.4f;
             drag = 0.4f;
             hitSize = 12f;
-//            creeperDeposit = 7f;
             rotateSpeed = 3f;
             health = 940;
             immunities = ObjectSet.with(StatusEffects.burning, StatusEffects.melting);
@@ -682,7 +678,6 @@ public class UnitTypes implements ContentList{
             drag = 0.1f;
             speed = 0.5f;
             hitSize = 21f;
-//            creeperDeposit = 5f;
             health = 8000;
             armor = 6f;
             targetAir = false;
@@ -789,7 +784,6 @@ public class UnitTypes implements ContentList{
             drag = 0.1f;
             speed = 0.5f;
             hitSize = 21f;
-//            creeperDeposit = 9f;
             health = 22000;
             armor = 13f;
             lightRadius = 140f;
@@ -836,7 +830,7 @@ public class UnitTypes implements ContentList{
 
                 bullet = new ShrapnelBulletType(){{
                     length = 90f;
-                    damage = 110f;
+                    damage = 150f;
                     width = 25f;
                     serrationLenScl = 7f;
                     serrationSpaceOffset = 60f;
@@ -863,7 +857,7 @@ public class UnitTypes implements ContentList{
                 rotate = true;
                 shadow = 30f;
 
-                bullet = new ArtilleryBulletType(3f, 50){{
+                bullet = new ArtilleryBulletType(3f, 75){{
                     hitEffect = Fx.sapExplosion;
                     knockback = 0.8f;
                     lifetime = 80f;
@@ -871,7 +865,7 @@ public class UnitTypes implements ContentList{
                     collidesTiles = collides = true;
                     ammoMultiplier = 4f;
                     splashDamageRadius = 80f;
-                    splashDamage = 75f;
+                    splashDamage = 100f;
                     backColor = Pal.sapBulletBack;
                     frontColor = lightningColor = Pal.sapBullet;
                     lightning = 5;
@@ -888,14 +882,14 @@ public class UnitTypes implements ContentList{
                     fragLifeMin = 0.3f;
                     fragBullets = 9;
 
-                    fragBullet = new ArtilleryBulletType(2.3f, 30){{
+                    fragBullet = new ArtilleryBulletType(2.3f, 50){{
                         hitEffect = Fx.sapExplosion;
                         knockback = 0.8f;
                         lifetime = 90f;
                         width = height = 20f;
                         collidesTiles = false;
                         splashDamageRadius = 70f;
-                        splashDamage = 40f;
+                        splashDamage = 60f;
                         backColor = Pal.sapBulletBack;
                         frontColor = lightningColor = Pal.sapBullet;
                         lightning = 2;
@@ -929,7 +923,7 @@ public class UnitTypes implements ContentList{
             playerTargetFlags = new BlockFlag[]{null};
             targetFlags = new BlockFlag[]{BlockFlag.generator, null};
             circleTarget = true;
-//            creeperResistance = 0.2f;
+
 
             weapons.add(new Weapon(){{
                 y = 0f;
@@ -966,7 +960,6 @@ public class UnitTypes implements ContentList{
             playerTargetFlags = new BlockFlag[]{null};
             targetFlags = new BlockFlag[]{BlockFlag.factory, null};
             circleTarget = true;
-//            creeperResistance = 1f;
             ammoType = new ItemAmmoType(Items.graphite);
 
             weapons.add(new Weapon(){{
@@ -1007,7 +1000,6 @@ public class UnitTypes implements ContentList{
             targetFlags = new BlockFlag[]{BlockFlag.launchPad, BlockFlag.storage, BlockFlag.battery, null};
             engineOffset = 12f;
             engineSize = 3f;
-//            creeperResistance = 0.4f;
             ammoType = new ItemAmmoType(Items.graphite);
 
             weapons.add(new Weapon("zenith-missiles"){{
@@ -1263,7 +1255,7 @@ public class UnitTypes implements ContentList{
                     frontColor = Color.white;
                     hitSound = Sounds.none;
 
-                    healPercent = 5.5f;
+                    healPercent = 3f;
                     collidesTeam = true;
                     backColor = Pal.heal;
                     trailColor = Pal.heal;
@@ -1302,7 +1294,7 @@ public class UnitTypes implements ContentList{
                 rotate = true;
                 bullet = new LaserBoltBulletType(5.2f, 10){{
                     lifetime = 35f;
-                    healPercent = 5.5f;
+                    healPercent = 3f;
                     collidesTeam = true;
                     backColor = Pal.heal;
                     frontColor = Color.white;
@@ -1316,7 +1308,7 @@ public class UnitTypes implements ContentList{
                 rotate = true;
                 bullet = new LaserBoltBulletType(5.2f, 8){{
                     lifetime = 35f;
-                    healPercent = 3f;
+                    healPercent = 2f;
                     collidesTeam = true;
                     backColor = Pal.heal;
                     frontColor = Color.white;
@@ -1388,7 +1380,7 @@ public class UnitTypes implements ContentList{
                     speed = 0f;
                     collides = false;
 
-                    healPercent = 15f;
+                    healPercent = 8f;
                     splashDamage = 220f;
                     splashDamageRadius = 80f;
                 }};
@@ -1809,7 +1801,7 @@ public class UnitTypes implements ContentList{
 
                     maxRange = 50f;
                     ignoreRotation = true;
-                    healPercent = 4f;
+                    healPercent = 3f;
 
                     backColor = Pal.heal;
                     frontColor = Color.white;
@@ -1879,7 +1871,7 @@ public class UnitTypes implements ContentList{
                 shootCone = 30f;
 
                 bullet = new BulletType(3.4f, 23f){{
-                    healPercent = 1.5f;
+                    healPercent = 1f;
                     collidesTeam = true;
                     ammoMultiplier = 3f;
                     hitSize = 7f;
@@ -2034,7 +2026,7 @@ public class UnitTypes implements ContentList{
                         trailLength = 20;
                         trailChance = -1f;
 
-                        healPercent = 2.8f;
+                        healPercent = 1.5f;
                         collidesTeam = true;
                         backColor = Pal.heal;
 
@@ -2163,7 +2155,7 @@ public class UnitTypes implements ContentList{
                             incendSpread = 5f;
                             incendAmount = 1;
 
-                            healPercent = 0.4f;
+                            healPercent = 0.3f;
                             collidesTeam = true;
 
                             colors = new Color[]{Pal.heal.cpy().a(.2f), Pal.heal.cpy().a(.5f), Pal.heal.cpy().mul(1.2f), Color.white};
@@ -2194,7 +2186,7 @@ public class UnitTypes implements ContentList{
                     scaleVelocity = true;
                     lightOpacity = 0.7f;
                     unitDamageScl = 0.8f;
-                    healPercent = 20f;
+                    healPercent = 10f;
                     timeIncrease = 3f;
                     timeDuration = 60f * 20f;
                     powerDamageScl = 3f;
