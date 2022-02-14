@@ -414,7 +414,7 @@ public class UnitTypes implements ContentList{
                 cooldownTime = 200f;
 
                 bullet = new ContinuousLaserBulletType(){{
-                    damage = 30f;
+                    damage = 20f;
                     length = 180f;
                     hitEffect = Fx.hitMeltHeal;
                     drawSize = 420f;
@@ -430,7 +430,7 @@ public class UnitTypes implements ContentList{
                     incendAmount = 1;
 
                     //constant healing
-                    healPercent = 1f;
+                    healPercent = 0.7f;
                     collidesTeam = true;
 
                     colors = new Color[]{Pal.heal.cpy().a(.2f), Pal.heal.cpy().a(.5f), Pal.heal.cpy().mul(1.2f), Color.white};
@@ -445,7 +445,7 @@ public class UnitTypes implements ContentList{
                 y = -30f / 4f;
                 shootY = 6f;
                 beamWidth = 0.8f;
-                repairSpeed = 1.4f;
+                repairSpeed = 1f;
 
                 bullet = new BulletType(){{
                     maxRange = 120f;
@@ -496,8 +496,8 @@ public class UnitTypes implements ContentList{
                 parentizeEffects = true;
 
                 bullet = new LaserBulletType(){{
-                    length = 460f;
-                    damage = 560f;
+                    length = 600f;
+                    damage = 800f;
                     width = 75f;
 
                     lifetime = 65f;
@@ -645,7 +645,7 @@ public class UnitTypes implements ContentList{
                 bullet = new SapBulletType(){{
                     sapStrength = 0.5f;
                     length = 75f;
-                    damage = 23;
+                    damage = 26;
                     shootEffect = Fx.shootSmall;
                     hitColor = color = Color.valueOf("bf92f9");
                     despawnEffect = Fx.none;
@@ -713,7 +713,7 @@ public class UnitTypes implements ContentList{
             BulletType sapper = new SapBulletType(){{
                 sapStrength = 0.2f;
                 length = 55f;
-                damage = 80;
+                damage = 100;
                 shootEffect = Fx.shootSmall;
                 hitColor = color = Color.valueOf("bf92f9");
                 despawnEffect = Fx.none;
@@ -921,7 +921,7 @@ public class UnitTypes implements ContentList{
             accel = 0.08f;
             drag = 0.01f;
             flying = true;
-            health = 275;
+            health = 200;
             engineOffset = 5.5f;
             range = 140f;
             targetAir = false;
@@ -951,7 +951,7 @@ public class UnitTypes implements ContentList{
         horizon = new UnitType("horizon"){{
             defaultController = BuilderAI::new;
             health = 440;
-            speed = 1.7f;
+            speed = 2.3f;
             accel = 0.08f;
             drag = 0.016f;
             flying = true;
@@ -1751,8 +1751,8 @@ public class UnitTypes implements ContentList{
                     updateEffect = Fx.railTrail;
                     hitEffect = Fx.massiveExplosion;
                     smokeEffect = Fx.shootBig2;
-                    damage = 1250;
-                    pierceDamageFactor = 0.5f;
+                    damage = 3000;
+                    pierceDamageFactor = 0.9f;
                 }};
             }});
         }};
@@ -2080,7 +2080,7 @@ public class UnitTypes implements ContentList{
 
             buildSpeed = 3f;
 
-            abilities.add(new EnergyFieldAbility(35f, 65f, 180f){{
+            abilities.add(new EnergyFieldAbility(50f, 65f, 180f){{
                 statusDuration = 60f * 6f;
                 maxTargets = 25;
             }});
@@ -2291,7 +2291,7 @@ public class UnitTypes implements ContentList{
                     lifetime = 60f;
                     shootEffect = Fx.shootSmall;
                     smokeEffect = Fx.shootSmallSmoke;
-                    buildingDamageMultiplier = 0.4f;
+                    buildingDamageMultiplier = 1f;
                 }};
             }});
         }};
@@ -2332,7 +2332,7 @@ public class UnitTypes implements ContentList{
                     lifetime = 60f;
                     shootEffect = Fx.shootSmall;
                     smokeEffect = Fx.shootSmallSmoke;
-                    buildingDamageMultiplier = 0.4f;
+                    buildingDamageMultiplier = 1f;
                 }};
             }});
         }};
@@ -2372,7 +2372,7 @@ public class UnitTypes implements ContentList{
                     lifetime = 70f;
                     shootEffect = Fx.shootSmall;
                     smokeEffect = Fx.shootSmallSmoke;
-                    buildingDamageMultiplier = 0.4f;
+                    buildingDamageMultiplier = 1f;
                     homingPower = 0.04f;
                 }};
             }});
