@@ -256,21 +256,21 @@ public class Bullets implements ContentList{
             status = StatusEffects.burning;
         }};
 
-        missileSurge = new MissileBulletType(3.7f, 100){{
+        missileSurge = new MissileBulletType(3.7f, 60){{
             width = 8f;
             height = 8f;
             shrinkY = 0f;
             splashDamageRadius = 25f;
-            splashDamage = 50f * 1.4f;
+            splashDamage = 40f * 1.4f;
             hitEffect = Fx.blastExplosion;
             despawnEffect = Fx.blastExplosion;
             ammoMultiplier = 3f;
-            lightningDamage = 60;
+            lightningDamage = 40;
             lightning = 2;
-            lightningLength = 25;
+            lightningLength = 20;
         }};
 
-        standardCopper = new BasicBulletType(2.5f, 40){{
+        standardCopper = new BasicBulletType(2.5f, 35){{
             width = 7f;
             height = 9f;
             lifetime = 60f;
@@ -279,7 +279,7 @@ public class Bullets implements ContentList{
             ammoMultiplier = 5;
         }};
 
-        standardDense = new BasicBulletType(3.5f, 60){{
+        standardDense = new BasicBulletType(3.5f, 50){{
             width = 9f;
             height = 12f;
             reloadMultiplier = 0.6f;
@@ -287,7 +287,7 @@ public class Bullets implements ContentList{
             lifetime = 60f;
         }};
 
-        standardThorium = new BasicBulletType(4f, 80, "bullet"){{
+        standardThorium = new BasicBulletType(4f, 60, "bullet"){{
             width = 10f;
             height = 13f;
             shootEffect = Fx.shootBig;
@@ -298,7 +298,7 @@ public class Bullets implements ContentList{
             lifetime = 60f;
         }};
 
-        standardHoming = new BasicBulletType(3f, 55, "bullet"){{
+        standardHoming = new BasicBulletType(3f, 50, "bullet"){{
             width = 7f;
             height = 9f;
             homingPower = 0.1f;
@@ -307,7 +307,7 @@ public class Bullets implements ContentList{
             lifetime = 60f;
         }};
 
-        standardIncendiary = new BasicBulletType(3.2f, 60, "bullet"){{
+        standardIncendiary = new BasicBulletType(3.2f, 55, "bullet"){{
             width = 10f;
             height = 12f;
             frontColor = Pal.lightishOrange;
