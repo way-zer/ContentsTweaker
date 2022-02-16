@@ -70,6 +70,10 @@ class ContentsLoader : Mod() {
                 Log.infoTag("ContentsLoader", "Loaded ${it.lastContent!!::class.qualifiedName} costs ${time}ms")
             }
             if (!Vars.headless) {
+                val timeLoadColors = measureTimeMillis {
+                    MyContentLoader.loadColors()
+                }
+                Log.infoTag("ContentsLoader", "ContentLoader.loadColors costs ${timeLoadColors}ms")
                 val timeLoadIcon = measureTimeMillis {
                     MyContentLoader.contents.forEach { it.contentMap.forEach(Content::loadIcon) }
                 }
