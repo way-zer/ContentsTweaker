@@ -1,0 +1,4 @@
+jdk:
+  - openjdk16
+install:
+  - ./gradlew publishToMavenLocal
