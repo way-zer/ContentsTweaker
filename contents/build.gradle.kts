@@ -19,11 +19,15 @@ subprojects {
         compileOnly("com.github.Anuken.Mindustry:core:v135")
     }
 
-    publishing{
+    tasks.getByName<Jar>("jar") {
+        archiveClassifier.set(project.name)
+    }
+
+    publishing {
         publications {
             create<MavenPublication>("maven") {
                 groupId = rootProject.group.toString()
-                artifactId = project.name
+                artifactId = rootProject.name
                 version = rootProject.version.toString()
 
                 from(components["kotlin"])
