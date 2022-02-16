@@ -82,6 +82,10 @@ class ContentsLoader : Mod() {
                     MyContentLoader.contents.forEach { it.contentMap.forEach(Content::load) }
                 }
                 Log.infoTag("ContentsLoader", "Content.load costs ${timeLoad}ms")
+                val timeSchematics = measureTimeMillis {
+                    Vars.schematics.load()
+                }
+                Log.infoTag("ContentsLoader", "timeSchematics costs ${timeSchematics}ms")
             }
         }
 
