@@ -1673,7 +1673,7 @@ public class Blocks implements ContentList{
         fuse = new ItemTurret("fuse"){{
             requirements(Category.turret, with(Items.copper, 225, Items.graphite, 225, Items.thorium, 100));
 
-            reloadTime = 20f;
+            reloadTime = 180f;
             shootShake = 4f;
             range = 90f;
             recoilAmount = 5f;
@@ -1691,14 +1691,14 @@ public class Blocks implements ContentList{
             ammo(
                 Items.titanium, new ShrapnelBulletType(){{
                     length = brange;
-                    damage = 10f;
+                    damage = 200f;
                     ammoMultiplier = 2f;
                     width = 17f;
-                    reloadMultiplier = 1.3f;
+                    reloadMultiplier = 1.5f;
                 }},
                 Items.thorium, new ShrapnelBulletType(){{
                     length = brange;
-                    damage = 25f;
+                    damage = 500f;
                     ammoMultiplier = 2f;
                     toColor = Pal.thoriumPink;
                     shootEffect = smokeEffect = Fx.thoriumShoot;
