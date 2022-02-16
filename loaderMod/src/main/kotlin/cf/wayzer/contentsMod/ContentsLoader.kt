@@ -16,7 +16,7 @@ class ContentsLoader : Mod() {
     override fun init() {
         Events.on(ResetEvent::class.java) {
             //fastPath
-            if (MyContentLoader.contents.all { it.content == it.lastContent }) {
+            if (MyContentLoader.contents.all { it.content eq it.lastContent }) {
                 MyContentLoader.contents.forEach { it.content = it.default }
                 return@on
             }
@@ -45,6 +45,10 @@ class ContentsLoader : Mod() {
 
     @Suppress("unused", "MemberVisibilityCanBePrivate")
     companion object API {
+        infix fun ContentList.eq(contentList: ContentList?): Boolean {
+            return javaClass == contentList?.javaClass
+        }
+
         fun maskChanged(type: ContentType) {
             val c = MyContentLoader.contentMap[type] ?: throw IllegalArgumentException("Not Support Overwrite ContentType")
             c.maskChanged()
