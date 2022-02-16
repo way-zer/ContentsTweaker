@@ -19,7 +19,7 @@ subprojects {
         compileOnly("com.github.Anuken.Mindustry:core:v135")
     }
 
-    publishing{
+    publishing {
         publications {
             create<MavenPublication>("maven") {
                 groupId = rootProject.group.toString()
