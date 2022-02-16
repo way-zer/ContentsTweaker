@@ -25,7 +25,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    implementation 'cf.wayzer:MindustryContents:VERSION:CONTENT_TYPE'
+    implementation 'cf.wayzer.MindustryContents:CONTENT_TYPE:VERSION'
 }
 ```
 * VERSION: 编译版本号 build version
