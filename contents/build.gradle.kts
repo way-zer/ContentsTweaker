@@ -19,6 +19,12 @@ subprojects {
         compileOnly("com.github.Anuken.Mindustry:core:v135")
     }
 
+    tasks.withType(JavaCompile::class) {
+        targetCompatibility = JavaVersion.VERSION_1_8.toString()
+        sourceCompatibility = JavaVersion.VERSION_16.toString()
+        options.compilerArgs.addAll(listOf("--release", "8"))
+    }
+
     publishing {
         publications {
             create<MavenPublication>("maven") {
