@@ -30,10 +30,38 @@ val shadowTask: ShadowJar = tasks.withType(com.github.jengelman.gradle.plugins.s
     minimize()
 }.first()
 
-tasks.create("dist", Copy::class.java) {
+val jarAndroid = tasks.create("jarAndroid") {
     dependsOn(shadowTask)
-    from(shadowTask.archiveFile){
-        rename { "ContentsLoader-${rootProject.version}.jar" }
+    val inFile = shadowTask.archiveFile.get().asFile
+    val outFile = inFile.resolveSibling("${shadowTask.archiveBaseName.get()}-Android.jar")
+    outputs.file(outFile)
+    doLast {
+        val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
+
+        val d8Tool = File("$sdkRoot/build-tools/").listFiles()?.sortedDescending()
+            ?.flatMap { dir -> (dir.listFiles().orEmpty()).filter { it.name.startsWith("d8") } }?.firstOrNull()
+            ?: throw GradleException("No d8 found. Ensure that you have an Android platform installed.")
+        val platformRoot = File("$sdkRoot/platforms/").listFiles()?.sortedDescending()?.firstOrNull { it.resolve("android.jar").exists() }
+            ?: throw GradleException("No android.jar found. Ensure that you have an Android platform installed.")
+
+        //collect dependencies needed for desugaring
+        val dependencies = (configurations.compileClasspath.get() + configurations.runtimeClasspath.get() + platformRoot.resolve("android.jar"))
+            .joinToString(" ") { "--classpath ${it.path}" }
+        exec {
+            commandLine("$d8Tool $dependencies --min-api 14 --output $outFile $inFile".split(" "))
+            workingDir(inFile.parentFile)
+            standardOutput = System.out
+            errorOutput = System.err
+        }.assertNormalExitValue()
     }
-    into(buildDir.resolve("dist"))
+}
+
+tasks.create("dist", Jar::class.java) {
+    dependsOn(shadowTask)
+    dependsOn(jarAndroid)
+    from(zipTree(shadowTask.archiveFile.get()))
+    from(zipTree(jarAndroid.outputs.files.first()))
+    destinationDirectory.set(buildDir.resolve("dist"))
+    archiveFileName.set("ContentsLoader-${rootProject.version}.jar")
 }
