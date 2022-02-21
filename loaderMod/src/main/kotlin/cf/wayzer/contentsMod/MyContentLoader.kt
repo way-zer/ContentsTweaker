@@ -14,11 +14,11 @@ import mindustry.io.SaveVersion
 import mindustry.mod.Mods
 
 object MyContentLoader : ContentLoader() {
-    class ContentContainer(val type: ContentType, val default: ContentList) {
+    class ContentContainer(val type: ContentType?, val default: ContentList) {
         var content: ContentList = default
         var lastContent: ContentList? = null
             private set
-        val contentMap: Seq<Content> = Vars.content.getBy<Content>(type).copy()
+        val contentMap: Seq<Content> = if (type == null) Seq() else Vars.content.getBy<Content>(type).copy()
         val nameMap = contentMap.filterIsInstance<MappableContent>().associateByTo(mutableMapOf()) { it.name }
 
         fun maskChanged() {
@@ -54,8 +54,10 @@ object MyContentLoader : ContentLoader() {
         ContentContainer(ContentType.bullet, Bullets()),
         ContentContainer(ContentType.unit, UnitTypes()),
         ContentContainer(ContentType.block, Blocks()),
+        ContentContainer(null, Loadouts()),
+        ContentContainer(null, TechTree()),
     )
-    val contentMap = contents.associateBy { it.type }
+    val contentMap = contents.filter { it.type != null }.associateBy { it.type }
 
     override fun clear() = Unit/*throw NotImplementedError()*/
     override fun createBaseContent() = throw NotImplementedError()

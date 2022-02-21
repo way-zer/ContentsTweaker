@@ -2,6 +2,7 @@ package cf.wayzer.contentsMod
 
 import arc.func.Cons
 import arc.func.Prov
+import arc.struct.ObjectIntMap
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
@@ -11,6 +12,7 @@ import mindustry.ctype.ContentList
 import mindustry.ctype.ContentType
 import mindustry.gen.Call
 import mindustry.gen.ClientPacketReliableCallPacket
+import mindustry.logic.LExecutor
 import mindustry.mod.Mod
 import mindustry.net.Net
 import mindustry.net.Packet
@@ -69,6 +71,18 @@ class ContentsLoader : Mod() {
                 val time = measureTimeMillis { it.load() }
                 Log.infoTag("ContentsLoader", "Loaded ${it.lastContent!!::class.qualifiedName} costs ${time}ms")
             }
+            val timeReloadConstants = measureTimeMillis {
+                Vars.constants.apply {
+                    javaClass.getDeclaredField("namesToIds")
+                        .apply { isAccessible = true }
+                        .set(this, ObjectIntMap<String>())
+                    javaClass.getDeclaredField("vars")
+                        .apply { isAccessible = true }
+                        .set(this, Seq<LExecutor.Var>(LExecutor.Var::class.java))
+                    init()
+                }
+            }
+            Log.infoTag("ContentsLoader", "Reload Vars.constants costs ${timeReloadConstants}ms")
             if (!Vars.headless) {
                 val timeLoadColors = measureTimeMillis {
                     MyContentLoader.loadColors()
