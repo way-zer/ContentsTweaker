@@ -199,7 +199,7 @@ public class UnitTypes implements ContentList{
                 ejectEffect = Fx.casing4;
                 shootSound = Sounds.bang;
 
-                bullet = new BasicBulletType(13f, 100){{
+                bullet = new BasicBulletType(13f, 150){{
                     pierce = true;
                     pierceCap = 20;
                     width = 14f;
@@ -804,7 +804,7 @@ public class UnitTypes implements ContentList{
             ammoType = new ItemAmmoType(Items.graphite, 8);
             buildSpeed = 1f;
 
-            legSplashDamage = 80;
+            legSplashDamage = 200;
             legSplashRange = 60;
 
             targetAir = false;
@@ -827,7 +827,7 @@ public class UnitTypes implements ContentList{
                 recoil = 3f;
                 shots = 2;
                 spacing = 17f;
-
+                
                 bullet = new ShrapnelBulletType(){{
                     length = 90f;
                     damage = 150f;
@@ -1339,6 +1339,8 @@ public class UnitTypes implements ContentList{
 
             ammoType = new PowerAmmoType(3000);
 
+            abilities.add(new StatusFieldAbility(StatusEffects.overclock, 60f * 3, 60f * 3f, 30f));
+
             weapons.add(
             new Weapon(){{
                 x = y = 0f;
@@ -1409,6 +1411,7 @@ public class UnitTypes implements ContentList{
             ammoCapacity = 1;
 
             abilities.add(new ForceFieldAbility(140f, 16f, 15000f, 60f * 8));
+            abilities.add(new StatusFieldAbility(StatusEffects.overdrive, 60f * 10, 60f * 10f, 120f));
         }};
 
         //endregion
@@ -1743,7 +1746,7 @@ public class UnitTypes implements ContentList{
                     updateEffect = Fx.railTrail;
                     hitEffect = Fx.massiveExplosion;
                     smokeEffect = Fx.shootBig2;
-                    damage = 3000;
+                    damage = 4000;
                     pierceDamageFactor = 0.9f;
                 }};
             }});
@@ -2138,7 +2141,7 @@ public class UnitTypes implements ContentList{
                         immunities.add(StatusEffects.burning);
 
                         bullet = new ContinuousLaserBulletType(){{
-                            maxRange = 90f;
+                            maxRange = 130f;
                             damage = 27f;
                             length = 95f;
                             hitEffect = Fx.hitMeltHeal;
@@ -2190,7 +2193,7 @@ public class UnitTypes implements ContentList{
                     timeIncrease = 3f;
                     timeDuration = 60f * 20f;
                     powerDamageScl = 3f;
-                    damage = 60;
+                    damage = 200;
                     hitColor = lightColor = Pal.heal;
                     lightRadius = 70f;
                     clipSize = 250f;
