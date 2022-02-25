@@ -884,7 +884,6 @@ public class Blocks implements ContentList{
 
             consumes.item(Items.phaseFabric).boost();
             consumes.power(4f);
-            consumes.add(new ConsumeLiquidFilter(liquid -> liquid.temperature <= 0.5f && liquid.flammability < 0.1f, 0.5f));
         }};
 
         shockMine = new ShockMine("shock-mine"){{
