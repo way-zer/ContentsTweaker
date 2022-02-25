@@ -1543,7 +1543,7 @@ public class Blocks implements ContentList{
                 drawSize = 400f;
                 pierce = true;
                 collidesAir = false;
-                length = 95f;
+                length = 180f;
                 ammoMultiplier = 1f;
             }};
         }};
@@ -1673,9 +1673,9 @@ public class Blocks implements ContentList{
         fuse = new ItemTurret("fuse"){{
             requirements(Category.turret, with(Items.copper, 225, Items.graphite, 225, Items.thorium, 100));
 
-            reloadTime = 180f;
+            reloadTime = 270f;
             shootShake = 4f;
-            range = 90f;
+            range = 135f;
             recoilAmount = 5f;
             shots = 3;
             spread = 20f;
