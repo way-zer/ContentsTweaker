@@ -1,7 +1,9 @@
 package cf.wayzer.contentsMod
 
+import arc.Events
 import arc.files.Fi
 import arc.func.Cons
+import arc.struct.ObjectIntMap
 import arc.struct.Seq
 import mindustry.Vars
 import mindustry.content.*
@@ -10,30 +12,23 @@ import mindustry.ctype.Content
 import mindustry.ctype.ContentList
 import mindustry.ctype.ContentType
 import mindustry.ctype.MappableContent
+import mindustry.game.EventType.ContentInitEvent
 import mindustry.io.SaveVersion
+import mindustry.logic.LExecutor
 import mindustry.mod.Mods
+import kotlin.system.measureTimeMillis
 
 object MyContentLoader : ContentLoader() {
     class ContentContainer(val type: ContentType?, val default: ContentList) {
         var content: ContentList = default
-        var lastContent: ContentList? = null
-            private set
         val contentMap: Seq<Content> = if (type == null) Seq() else Vars.content.getBy<Content>(type).copy()
         val nameMap = contentMap.filterIsInstance<MappableContent>().associateByTo(mutableMapOf()) { it.name }
-
-        fun maskChanged() {
-            lastContent = null
-        }
 
         @Synchronized
         fun load(ex: Throwable? = null) {
             contentMap.clear()
             nameMap.clear()
-            val result = kotlin.runCatching {
-                content.load()
-                contentMap.forEach(Content::init)
-            }
-            lastContent = content
+            val result = kotlin.runCatching { content.load() }
             content = default
             if (result.isFailure) {
                 if (ex != null) {
@@ -126,5 +121,93 @@ object MyContentLoader : ContentLoader() {
     override fun <T : Content> getBy(type: ContentType): Seq<T> {
         @Suppress("UNCHECKED_CAST")
         return contentMap[type]?.contentMap as Seq<T>? ?: origin.getBy(type)
+    }
+
+    @Suppress("unused")
+    object Api {
+        val supportContents by MyContentLoader::contents
+        val contentPacks = mutableMapOf(
+            "origin" to { contents.forEach { it.content = it.default } }
+        )
+        val toLoadPacks = mutableListOf<String>()
+        var lastLoadedPacks = listOf<String>()
+            private set
+
+        //platform impl
+        internal var logTimeCost: (tag: String, ms: Long) -> Unit = { _, _ -> }
+
+        private inline fun doMeasureTimeLog(tag: String, body: () -> Unit) {
+            val time = measureTimeMillis(body)
+            logTimeCost(tag, time)
+        }
+
+        /**
+         * Should before world load
+         */
+        fun loadContent(outNotFound: MutableList<String>) {
+            fun checkPackExist(pack: String): Boolean {
+                if (pack in contentPacks)
+                    return true
+                outNotFound.add(pack)
+                return false
+            }
+
+            val mainPack = toLoadPacks.lastOrNull { !it.startsWith("EX-") }?.takeIf(::checkPackExist) ?: "origin"
+            val exPack = toLoadPacks.filter { it.startsWith("EX-") && checkPackExist(it) }.sorted()
+            toLoadPacks.clear()
+
+            //fastPath
+            val packs = listOf(mainPack) + exPack
+            if (lastLoadedPacks == packs) return
+            lastLoadedPacks = packs
+
+            doMeasureTimeLog("Load Main ContentsPack '$mainPack'") {
+                contentPacks[mainPack]!!.invoke()
+                contents.forEach(ContentContainer::load)
+            }
+            doMeasureTimeLog("Content.init") {
+                contents.forEach {
+                    it.contentMap.forEach(Content::init)
+                }
+            }
+            if (Vars.constants != null) {
+                doMeasureTimeLog("Vars.constants.init") {
+                    Vars.constants.apply {
+                        javaClass.getDeclaredField("namesToIds")
+                            .apply { isAccessible = true }
+                            .set(this, ObjectIntMap<String>())
+                        javaClass.getDeclaredField("vars")
+                            .apply { isAccessible = true }
+                            .set(this, Seq<LExecutor.Var>(LExecutor.Var::class.java))
+                        init()
+                    }
+                }
+            }
+            exPack.forEach { pack ->
+                doMeasureTimeLog("Load Extra ContentsPack '$pack'") {
+                    contentPacks[pack]!!.invoke()
+                }
+            }
+            Events.fire(ContentInitEvent())
+            if (!Vars.headless) {
+                doMeasureTimeLog("ContentLoader.loadColors") {
+                    loadColors()
+                }
+                doMeasureTimeLog("Content.loadIcon") {
+                    contents.forEach { it.contentMap.forEach(Content::loadIcon) }
+                }
+                doMeasureTimeLog("Content.load") {
+                    contents.forEach { it.contentMap.forEach(Content::load) }
+                }
+                doMeasureTimeLog("Vars.schematics.load") {
+                    Vars.schematics.load()
+                }
+            }
+        }
+
+        fun overwriteContents(type: ContentType, list: ContentList) {
+            val c = contentMap[type] ?: throw IllegalArgumentException("Not Support Overwrite ContentType")
+            c.content = list
+        }
     }
 }

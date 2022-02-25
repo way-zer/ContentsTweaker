@@ -1,34 +1,32 @@
 package cf.wayzer.contentsMod
 
-import arc.util.Log
+import cf.wayzer.contentsMod.MyContentLoader.Api.contentPacks
+import cf.wayzer.contentsMod.MyContentLoader.Api.overwriteContents
+import mindustry.Vars
 import mindustry.content.flood.Blocks
 import mindustry.content.flood.Bullets
 import mindustry.content.flood.UnitTypes
 import mindustry.ctype.ContentType
+import mindustry.world.blocks.production.GenericCrafter
+import mindustry.world.consumers.ConsumeType
 
 @Suppress("MemberVisibilityCanBePrivate")
 object Contents {
-    fun flood(): String {
-        ContentsLoader.overwriteContents(ContentType.block, Blocks())
-        ContentsLoader.overwriteContents(ContentType.bullet, Bullets())
-        ContentsLoader.overwriteContents(ContentType.unit, UnitTypes())
-        return "OK"
+    fun flood() {
+        overwriteContents(ContentType.block, Blocks())
+        overwriteContents(ContentType.bullet, Bullets())
+        overwriteContents(ContentType.unit, UnitTypes())
     }
 
-    fun origin(): String {
-        MyContentLoader.contents.forEach {
-            it.content = it.default
+    fun exFactoryNotConsume() {
+        Vars.content.blocks().filterIsInstance<GenericCrafter>().forEach {
+            it.consumes.remove(ConsumeType.item)
+            it.consumes.remove(ConsumeType.liquid)
         }
-        return "OK"
     }
 
-    fun loadType(type: String) = when (type.lowercase()) {
-        "flood" -> flood()
-        "origin" -> origin()
-        else -> {
-            Log.infoTag("ContentsLoader", "Unknown contents type $type")
-            origin()
-            "NOTFOUND"
-        }
+    fun register() {
+        contentPacks["flood"] = ::flood
+        contentPacks["EX-factoryNotConsume"] = ::exFactoryNotConsume
     }
 }
