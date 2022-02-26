@@ -153,7 +153,7 @@ object ContentsLoader : ContentLoader() {
             }
 
             val mainPack = toLoadPacks.lastOrNull { !it.startsWith("EX-") }?.takeIf(::checkPackExist) ?: "origin"
-            val exPack = toLoadPacks.filter { it.startsWith("EX-") && checkPackExist(it) }.sorted()
+            val exPack = toLoadPacks.filter { it.startsWith("EX-") && checkPackExist(it) }.toSet().sorted()
             toLoadPacks.clear()
 
             //fastPath
