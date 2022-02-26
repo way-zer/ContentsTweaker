@@ -2393,5 +2393,6 @@ public class UnitTypes implements ContentList{
         };
 
         //endregion
+        StatusEffects.overdrive.permanent = false;
     }
 }
