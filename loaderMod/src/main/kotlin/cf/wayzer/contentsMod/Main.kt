@@ -1,10 +1,12 @@
 package cf.wayzer.contentsMod
 
+import Contents
 import arc.func.Cons
 import arc.func.Prov
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
+import cf.wayzer.ContentsLoader
 import mindustry.Vars
 import mindustry.gen.Call
 import mindustry.gen.ClientPacketReliableCallPacket
@@ -20,11 +22,11 @@ class MYClientPacketReliableCallPacket : ClientPacketReliableCallPacket() {
     }
 }
 
-@Suppress("unused")
-class ContentsLoader : Mod() {
+@Suppress("unused", "MemberVisibilityCanBePrivate")
+class Main : Mod() {
     override fun init() {
-        Vars.content = MyContentLoader
-        MyContentLoader.Api.apply {
+        Vars.content = ContentsLoader
+        ContentsLoader.Api.apply {
             logTimeCost = { tag, time ->
                 Log.infoTag("ContentsLoader", "$tag costs ${time}ms")
             }
@@ -51,15 +53,15 @@ class ContentsLoader : Mod() {
         }
         packetProvs[Net.getPacketId(ClientPacketReliableCallPacket()).toInt()] = ::MYClientPacketReliableCallPacket
 
-        Vars.netClient.addPacketHandler("ContentsLoader|load", MyContentLoader.Api.toLoadPacks::add)
+        Vars.netClient.addPacketHandler("ContentsLoader|load", ContentsLoader.Api.toLoadPacks::add)
         Log.infoTag("ContentsLoader", "Finish Load Mod")
     }
 
     fun beforeWorldLoad() {
-        Log.infoTag("ContentsLoader", "ToLoad ${MyContentLoader.Api.toLoadPacks}")
+        Log.infoTag("ContentsLoader", "ToLoad ${ContentsLoader.Api.toLoadPacks}")
         val notFound = mutableListOf<String>()
-        MyContentLoader.Api.loadContent(notFound)
-        Call.serverPacketReliable("ContentsLoader|load", "LOADED: ${MyContentLoader.Api.lastLoadedPacks}")
+        ContentsLoader.Api.loadContent(notFound)
+        Call.serverPacketReliable("ContentsLoader|load", "LOADED: ${ContentsLoader.Api.lastLoadedPacks}")
         Call.serverPacketReliable("ContentsLoader|load", "NOTFOUND: $notFound")
     }
 }

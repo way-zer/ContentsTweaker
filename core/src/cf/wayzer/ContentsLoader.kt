@@ -1,4 +1,4 @@
-package cf.wayzer.contentsMod
+package cf.wayzer
 
 import arc.Events
 import arc.files.Fi
@@ -12,13 +12,13 @@ import mindustry.ctype.Content
 import mindustry.ctype.ContentList
 import mindustry.ctype.ContentType
 import mindustry.ctype.MappableContent
-import mindustry.game.EventType.ContentInitEvent
+import mindustry.game.EventType
 import mindustry.io.SaveVersion
 import mindustry.logic.LExecutor
 import mindustry.mod.Mods
 import kotlin.system.measureTimeMillis
 
-object MyContentLoader : ContentLoader() {
+object ContentsLoader : ContentLoader() {
     class ContentContainer(val type: ContentType?, val default: ContentList) {
         var content: ContentList = default
         val contentMap: Seq<Content> = if (type == null) Seq() else Vars.content.getBy<Content>(type).copy()
@@ -106,7 +106,7 @@ object MyContentLoader : ContentLoader() {
     private var temporaryMapper: Array<out Array<MappableContent>>? = null
     override fun setTemporaryMapper(temporaryMapper: Array<out Array<MappableContent>>?) {
         origin.setTemporaryMapper(temporaryMapper)
-        MyContentLoader.temporaryMapper = temporaryMapper
+        ContentsLoader.temporaryMapper = temporaryMapper
     }
 
     override fun <T : Content> getByID(type: ContentType, id: Int): T? {
@@ -123,9 +123,9 @@ object MyContentLoader : ContentLoader() {
         return contentMap[type]?.contentMap as Seq<T>? ?: origin.getBy(type)
     }
 
-    @Suppress("unused")
+    @Suppress("unused", "MemberVisibilityCanBePrivate")
     object Api {
-        val supportContents by MyContentLoader::contents
+        val supportContents by ContentsLoader::contents
         val contentPacks = mutableMapOf(
             "origin" to { contents.forEach { it.content = it.default } }
         )
@@ -134,7 +134,7 @@ object MyContentLoader : ContentLoader() {
             private set
 
         //platform impl
-        internal var logTimeCost: (tag: String, ms: Long) -> Unit = { _, _ -> }
+        var logTimeCost: (tag: String, ms: Long) -> Unit = { _, _ -> }
 
         private inline fun doMeasureTimeLog(tag: String, body: () -> Unit) {
             val time = measureTimeMillis(body)
@@ -188,7 +188,7 @@ object MyContentLoader : ContentLoader() {
                     contentPacks[pack]!!.invoke()
                 }
             }
-            Events.fire(ContentInitEvent())
+            Events.fire(EventType.ContentInitEvent())
             if (!Vars.headless) {
                 doMeasureTimeLog("ContentLoader.loadColors") {
                     loadColors()

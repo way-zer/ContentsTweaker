@@ -1,5 +1,6 @@
 rootProject.name = "MindustryContents"
-include("contents")
+include("core")
 include("contents:flood")
 include("contents:origin")
+include("contents")
 include("loaderMod")

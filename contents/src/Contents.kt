@@ -1,7 +1,5 @@
-package cf.wayzer.contentsMod
-
-import cf.wayzer.contentsMod.MyContentLoader.Api.contentPacks
-import cf.wayzer.contentsMod.MyContentLoader.Api.overwriteContents
+import cf.wayzer.ContentsLoader.Api.contentPacks
+import cf.wayzer.ContentsLoader.Api.overwriteContents
 import mindustry.Vars
 import mindustry.content.flood.Blocks
 import mindustry.content.flood.Bullets
@@ -20,6 +18,7 @@ object Contents {
 
     fun exFactoryNotConsume() {
         Vars.content.blocks().filterIsInstance<GenericCrafter>().forEach {
+            it.canOverdrive = false
             it.consumes.remove(ConsumeType.item)
             it.consumes.remove(ConsumeType.liquid)
         }

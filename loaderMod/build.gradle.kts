@@ -5,16 +5,10 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-repositories {
-    mavenCentral()
-    maven(url = "https://www.jitpack.io")
-}
 dependencies {
     implementation(kotlin("stdlib"))
     compileOnly("com.github.Anuken.Mindustry:core:v135")
-    findProject(":contents")!!.childProjects.values.forEach {
-        implementation(project(it.path))
-    }
+    api(project(":contents"))
 }
 
 tasks.withType<ProcessResources> {
@@ -37,7 +31,7 @@ val jarAndroid = tasks.create("jarAndroid") {
     outputs.file(outFile)
     doLast {
         val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
+        if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.")
 
         val d8Tool = File("$sdkRoot/build-tools/").listFiles()?.sortedDescending()
             ?.flatMap { dir -> (dir.listFiles().orEmpty()).filter { it.name.startsWith("d8") } }?.firstOrNull()

@@ -3,8 +3,9 @@ name: Build
 on:
   push:
     branches:
-      - '*'
+      - 'master'
   pull_request:
+    types: [ opened, reopened, synchronize ]
   workflow_dispatch:
 
 jobs:
@@ -26,6 +27,5 @@ jobs:
           path: loaderMod/build/dist/*
 
       - uses: release-drafter/release-drafter@v5
-        if: github.ref_name == 'master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
