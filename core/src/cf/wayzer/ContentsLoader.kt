@@ -52,7 +52,7 @@ object ContentsLoader : ContentLoader() {
         ContentContainer(null, Loadouts()),
         ContentContainer(null, TechTree()),
     )
-    val contentMap = contents.filter { it.type != null }.associateBy { it.type }
+    val contentMap = contents.filter { it.type != null }.associateBy { it.type!! }
 
     override fun clear() = Unit/*throw NotImplementedError()*/
     override fun createBaseContent() = throw NotImplementedError()
@@ -87,7 +87,12 @@ object ContentsLoader : ContentLoader() {
         c.nameMap[content.name] = content
     }
 
-    override fun getContentMap(): Array<Seq<Content>> = origin.contentMap
+    override fun getContentMap(): Array<Seq<Content>> {
+        val ret = origin.contentMap.clone()
+        contentMap.forEach { (k, v) -> ret[k.ordinal] = v.contentMap }
+        return ret
+    }
+
     override fun each(cons: Cons<Content>) {
         ContentType.all.forEach {
             getBy<Content>(it).each(cons)
