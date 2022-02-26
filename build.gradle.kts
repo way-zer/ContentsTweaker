@@ -6,7 +6,7 @@ plugins {
 group = "cf.wayzer.MindustryContents"
 version = System.getenv().getOrDefault("VERSION", "1.0-SNAPSHOT")
 
-allprojects {
+subprojects {
     apply { plugin("kotlin") }
     apply { plugin("maven-publish") }
     repositories {
