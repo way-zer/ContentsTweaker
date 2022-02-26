@@ -5,6 +5,7 @@ on:
     branches:
       - 'master'
   pull_request:
+    types: [ opened, reopened, synchronize ]
   workflow_dispatch:
 
 jobs:
@@ -19,13 +20,14 @@ jobs:
           java-version: 16
 
       - name: build MOD
-        run: ./gradlew dist
+        run: |
+          export VERSION="beta-$GITHUB_RUN_NUMBER"
+          ./gradlew dist
       - name: Upload MOD JAR
         uses: actions/upload-artifact@v2
         with:
           path: loaderMod/build/dist/*
 
       - uses: release-drafter/release-drafter@v5
-        if: github.ref_name == 'master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
