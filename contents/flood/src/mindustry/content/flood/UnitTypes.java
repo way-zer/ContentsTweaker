@@ -1339,13 +1339,11 @@ public class UnitTypes implements ContentList{
 
             ammoType = new PowerAmmoType(3000);
 
-            abilities.add(new StatusFieldAbility(StatusEffects.overclock, 60f * 3, 60f * 3f, 30f));
-
             weapons.add(
             new Weapon(){{
                 x = y = 0f;
                 mirror = false;
-                reload = 55f;
+                reload = 900f;
                 minShootVelocity = 0.01f;
 
                 soundPitchMin = 1f;
@@ -1383,8 +1381,8 @@ public class UnitTypes implements ContentList{
                     collides = false;
 
                     healPercent = 8f;
-                    splashDamage = 220f;
-                    splashDamageRadius = 80f;
+                    splashDamage = 3000f;
+                    splashDamageRadius = 200f;
                 }};
             }});
         }};
@@ -1410,8 +1408,8 @@ public class UnitTypes implements ContentList{
             buildBeamOffset = 43;
             ammoCapacity = 1;
 
-            abilities.add(new ForceFieldAbility(140f, 16f, 15000f, 60f * 8));
-            abilities.add(new StatusFieldAbility(StatusEffects.overdrive, 60f * 10, 60f * 10f, 120f));
+            abilities.add(new ForceFieldAbility(140f, 4f, 7000f, 60f * 8));
+            abilities.add(new StatusFieldAbility(StatusEffects.overclock, 60f * 10, 60f * 10f, 120f));
         }};
 
         //endregion
