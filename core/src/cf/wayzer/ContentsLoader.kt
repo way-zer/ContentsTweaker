@@ -170,6 +170,11 @@ object ContentsLoader : ContentLoader() {
                 contentPacks[mainPack]!!.invoke()
                 contents.forEach(ContentContainer::load)
             }
+            exPack.forEach { pack ->
+                doMeasureTimeLog("Load Extra ContentsPack '$pack'") {
+                    contentPacks[pack]!!.invoke()
+                }
+            }
             doMeasureTimeLog("Content.init") {
                 contents.forEach {
                     it.contentMap.forEach(Content::init)
@@ -186,11 +191,6 @@ object ContentsLoader : ContentLoader() {
                             .set(this, Seq<LExecutor.Var>(LExecutor.Var::class.java))
                         init()
                     }
-                }
-            }
-            exPack.forEach { pack ->
-                doMeasureTimeLog("Load Extra ContentsPack '$pack'") {
-                    contentPacks[pack]!!.invoke()
                 }
             }
             Events.fire(EventType.ContentInitEvent())
