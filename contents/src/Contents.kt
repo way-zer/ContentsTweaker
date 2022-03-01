@@ -8,6 +8,7 @@ import mindustry.content.flood.UnitTypes
 import mindustry.ctype.ContentType
 import mindustry.gen.Building
 import mindustry.world.blocks.production.GenericCrafter
+import mindustry.world.blocks.production.Separator
 import mindustry.world.consumers.*
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -19,7 +20,9 @@ object Contents {
     }
 
     fun exFactoryNotConsume() {
-        Vars.content.blocks().filterIsInstance<GenericCrafter>().forEach {
+        Vars.content.blocks().filter {
+            it is GenericCrafter || it is Separator
+        }.forEach {
             it.canOverdrive = false
             it.consumes.apply {
                 if (has(ConsumeType.item)) {
@@ -36,8 +39,11 @@ object Contents {
                     }
                     add(object : ConsumeLiquid(type, 0f) {
                         override fun applyLiquidFilter(filter: Bits?) = Unit
-                        override fun valid(entity: Building?) = true
-                        override fun trigger(entity: Building?) = Unit
+                        override fun valid(entity: Building?): Boolean {
+                            entity?.liquids?.add(type, it.liquidCapacity)
+                            return true
+                        }
+                        override fun update(entity: Building?) = Unit
                     })
                 }
             }
