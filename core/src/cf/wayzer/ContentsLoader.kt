@@ -1,5 +1,6 @@
 package cf.wayzer
 
+import arc.Core
 import arc.Events
 import arc.files.Fi
 import arc.func.Cons
@@ -8,10 +9,7 @@ import arc.struct.Seq
 import mindustry.Vars
 import mindustry.content.*
 import mindustry.core.ContentLoader
-import mindustry.ctype.Content
-import mindustry.ctype.ContentList
-import mindustry.ctype.ContentType
-import mindustry.ctype.MappableContent
+import mindustry.ctype.*
 import mindustry.game.EventType
 import mindustry.io.SaveVersion
 import mindustry.logic.LExecutor
@@ -206,6 +204,16 @@ object ContentsLoader : ContentLoader() {
                 }
                 doMeasureTimeLog("Vars.schematics.load") {
                     Vars.schematics.load()
+                }
+                doMeasureTimeLog("Set UnlockableContent.iconId") {
+                    //copy from mindustry.ui.Fonts.loadContentIcons
+                    var lastCid = 1
+                    each {
+                        if (it is UnlockableContent && Core.atlas.find(it.name + "-icon-logic").found()) {
+                            it.iconId = lastCid
+                            lastCid++
+                        }
+                    }
                 }
             }
         }
