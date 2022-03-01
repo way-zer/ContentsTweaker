@@ -366,7 +366,7 @@ public class Bullets implements ContentList{
         fireball = new FireBulletType(1f, 4);
 
         basicFlame = new BulletType(3.35f, 40f){{
-            ammoMultiplier = 3f;
+            ammoMultiplier = 6f;
             hitSize = 7f;
             lifetime = 18f;
             pierce = true;
@@ -381,7 +381,7 @@ public class Bullets implements ContentList{
         }};
 
         pyraFlame = new BulletType(4f, 100f){{
-            ammoMultiplier = 6f;
+            ammoMultiplier = 10f;
             hitSize = 7f;
             lifetime = 18f;
             pierce = true;

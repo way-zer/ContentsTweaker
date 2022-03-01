@@ -708,7 +708,7 @@ public class UnitTypes implements ContentList{
             BulletType sapper = new SapBulletType(){{
                 sapStrength = 0.2f;
                 length = 55f;
-                damage = 100;
+                damage = 90;
                 shootEffect = Fx.shootSmall;
                 hitColor = color = Color.valueOf("bf92f9");
                 despawnEffect = Fx.none;
@@ -763,7 +763,7 @@ public class UnitTypes implements ContentList{
                     collidesTiles = true;
                     ammoMultiplier = 4f;
                     splashDamageRadius = 70f;
-                    splashDamage = 100f;
+                    splashDamage = 80f;
                     backColor = Pal.sapBulletBack;
                     frontColor = lightningColor = Pal.sapBullet;
                     lightning = 3;
@@ -1381,8 +1381,8 @@ public class UnitTypes implements ContentList{
                     collides = false;
 
                     healPercent = 8f;
-                    splashDamage = 3000f;
-                    splashDamageRadius = 200f;
+                    splashDamage = 6000f;
+                    splashDamageRadius = 40f;
                 }};
             }});
         }};
