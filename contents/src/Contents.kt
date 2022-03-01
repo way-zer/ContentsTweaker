@@ -7,6 +7,7 @@ import mindustry.content.flood.Bullets
 import mindustry.content.flood.UnitTypes
 import mindustry.ctype.ContentType
 import mindustry.gen.Building
+import mindustry.world.Block
 import mindustry.world.blocks.production.GenericCrafter
 import mindustry.world.blocks.production.Separator
 import mindustry.world.consumers.*
@@ -20,9 +21,7 @@ object Contents {
     }
 
     fun exFactoryNotConsume() {
-        Vars.content.blocks().filter {
-            it is GenericCrafter || it is Separator
-        }.forEach {
+        Vars.content.blocks().each({ it is GenericCrafter || it is Separator }) { it: Block ->
             it.canOverdrive = false
             it.consumes.apply {
                 if (has(ConsumeType.item)) {
@@ -32,18 +31,22 @@ object Contents {
                     })
                 }
                 if (has(ConsumeType.liquid)) {
-                    val type = when (val old = get<ConsumeLiquidBase>(ConsumeType.liquid)) {
+                    val old = get<ConsumeLiquidBase>(ConsumeType.liquid)
+                    val type = when (old) {
                         is ConsumeLiquidFilter -> Vars.content.liquids().first(old.filter::get)
                         is ConsumeLiquid -> old.liquid
                         else -> null
                     }
-                    add(object : ConsumeLiquid(type, 0f) {
+                    val liquidCapacity = it.liquidCapacity
+                    add(object : ConsumeLiquid(type, old.amount) {
                         override fun applyLiquidFilter(filter: Bits?) = Unit
+                        override fun update(entity: Building?) = Unit
                         override fun valid(entity: Building?): Boolean {
-                            entity?.liquids?.add(type, it.liquidCapacity)
+                            entity?.liquids?.apply {
+                                add(type, liquidCapacity - get(type))
+                            }
                             return true
                         }
-                        override fun update(entity: Building?) = Unit
                     })
                 }
             }
