@@ -3,6 +3,7 @@ package mindustry.content.flood;
 import arc.graphics.*;
 import arc.struct.*;
 import mindustry.*;
+import mindustry.content.Bullets;
 import mindustry.content.UnitTypes;
 import mindustry.content.*;
 import mindustry.ctype.*;
@@ -30,8 +31,6 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
-import mindustry.content.Bullets;
-import mindustry.content.UnitTypes;
 import static mindustry.content.Blocks.*;
 import static mindustry.type.ItemStack.with;
 
@@ -884,6 +883,7 @@ public class Blocks implements ContentList{
 
             consumes.item(Items.phaseFabric).boost();
             consumes.power(4f);
+            consumes.add(new ConsumeLiquidFilter());//no consume liquid
         }};
 
         shockMine = new ShockMine("shock-mine"){{

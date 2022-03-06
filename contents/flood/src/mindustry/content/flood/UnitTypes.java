@@ -5,6 +5,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
 import mindustry.ai.types.*;
+import mindustry.content.Bullets;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
@@ -18,12 +19,10 @@ import mindustry.type.ammo.*;
 import mindustry.type.weapons.*;
 import mindustry.world.meta.*;
 
-import static arc.graphics.g2d.Draw.*;
-import static arc.graphics.g2d.Lines.*;
-import static arc.math.Angles.*;
-import static mindustry.Vars.*;
-
-import mindustry.content.Bullets;
+import static arc.graphics.g2d.Draw.color;
+import static arc.graphics.g2d.Lines.stroke;
+import static arc.math.Angles.randLenVectors;
+import static mindustry.Vars.tilePayload;
 import static mindustry.content.UnitTypes.*;
 
 @SuppressWarnings("DuplicatedCode")
@@ -943,7 +942,6 @@ public class UnitTypes implements ContentList{
         }};
 
         horizon = new UnitType("horizon"){{
-            defaultController = BuilderAI::new;
             health = 440;
             speed = 2.3f;
             accel = 0.08f;
@@ -962,27 +960,7 @@ public class UnitTypes implements ContentList{
             circleTarget = true;
             ammoType = new ItemAmmoType(Items.graphite);
 
-            weapons.add(new Weapon(){{
-                minShootVelocity = 0.75f;
-                x = 3f;
-                shootY = 0f;
-                reload = 12f;
-                shootCone = 180f;
-                ejectEffect = Fx.none;
-                inaccuracy = 15f;
-                ignoreRotation = true;
-                shootSound = Sounds.none;
-                bullet = new BombBulletType(0f, 25f){{
-                    width = 10f;
-                    height = 14f;
-                    hitEffect = Fx.flakExplosion;
-                    shootEffect = Fx.none;
-                    smokeEffect = Fx.none;
-
-                    status = StatusEffects.blasted;
-                    statusDuration = 60f;
-                }};
-            }});
+            //remove weapons
         }};
 
         zenith = new UnitType("zenith"){{
