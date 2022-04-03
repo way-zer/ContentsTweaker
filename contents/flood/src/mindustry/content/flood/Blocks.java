@@ -1551,17 +1551,17 @@ public class Blocks implements ContentList{
         arc = new PowerTurret("arc"){{
             requirements(Category.turret, with(Items.copper, 50, Items.lead, 50));
             shootType = new LightningBulletType(){{
-                damage = 4;
-                lightningLength = 15;
+                damage = 25;
+                lightningLength = 5;
                 collidesAir = false;
                 ammoMultiplier = 1f;
             }};
-            reloadTime = 35f;
+            reloadTime = 60f;
             shootCone = 40f;
             rotateSpeed = 8f;
             powerUse = 3.3f;
             targetAir = false;
-            range = 90f;
+            range = 30f;
             shootEffect = Fx.lightningShoot;
             heatColor = Color.red;
             recoilAmount = 1f;
@@ -1616,7 +1616,7 @@ public class Blocks implements ContentList{
             );
 
             size = 2;
-            range = 230f;
+            range = 200f;
             reloadTime = 30f;
             restitution = 0.03f;
             ammoEjectBack = 3f;
@@ -1692,14 +1692,14 @@ public class Blocks implements ContentList{
                 Items.titanium, new ShrapnelBulletType(){{
                     length = brange;
                     damage = 200f;
-                    ammoMultiplier = 2f;
+                    ammoMultiplier = 1f;
                     width = 17f;
                     reloadMultiplier = 1.5f;
                 }},
                 Items.thorium, new ShrapnelBulletType(){{
                     length = brange;
                     damage = 500f;
-                    ammoMultiplier = 2f;
+                    ammoMultiplier = 1f;
                     toColor = Pal.thoriumPink;
                     shootEffect = smokeEffect = Fx.thoriumShoot;
                 }}
@@ -1764,29 +1764,17 @@ public class Blocks implements ContentList{
             requirements(Category.turret, with(Items.copper, 1000, Items.metaglass, 600, Items.surgeAlloy, 300, Items.plastanium, 200, Items.silicon, 600));
 
             ammo(
-                    Items.surgeAlloy, new LaserBulletType(){{
-                        length = 460f;
-                        damage = 560f;
-                        width = 75f;
-
-                        lifetime = 65f;
-
-                        lightningSpacing = 35f;
-                        lightningLength = 5;
-                        lightningDelay = 1.1f;
-                        lightningLengthRand = 15;
-                        lightningDamage = 50;
-                        lightningAngleRand = 40f;
-                        largeHit = true;
-                        lightColor = lightningColor = Pal.heal;
-
-                        shootEffect = Fx.greenLaserCharge;
-
-                        sideAngle = 15f;
-                        sideWidth = 0f;
-                        sideLength = 0f;
-                        colors = new Color[]{Pal.heal.cpy().a(0.4f), Pal.heal, Color.white};
-                    }}
+                    Items.surgeAlloy, new RailBulletType(){{
+                shootEffect = Fx.railShoot;
+                length = 500f;
+                updateEffectSeg = 60f;
+                pierceEffect = Fx.railHit;
+                updateEffect = Fx.railTrail;
+                hitEffect = Fx.massiveExplosion;
+                smokeEffect = Fx.shootBig2;
+                damage = 2000;
+                pierceDamageFactor = 0.33f;
+                }}
             );
 
             maxAmmo = 60;

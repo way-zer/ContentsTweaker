@@ -113,9 +113,9 @@ public class UnitTypes implements ContentList{
         }};
 
         scepter = new UnitType("scepter"){{
-            speed = 0.45f;
+            speed = 0.55f;
             hitSize = 22f;
-            rotateSpeed = 2.1f;
+            rotateSpeed = 2.3f;
             health = 9000;
             armor = 10f;
             mechFrontSway = 1f;
@@ -146,11 +146,11 @@ public class UnitTypes implements ContentList{
                     height = 20f;
                     lifetime = 25f;
                     shootEffect = Fx.shootBig;
-                    lightning = 4;
+                    lightning = 2;
                     lightningLength = 15;
                     lightningColor = Pal.surge;
                     //standard bullet damage is far too much for lightning
-                    lightningDamage = 40;
+                    lightningDamage = 80;
                 }};
             }},
 
@@ -175,9 +175,9 @@ public class UnitTypes implements ContentList{
         }};
 
         reign = new UnitType("reign"){{
-            speed = 0.45f;
+            speed = 0.5f;
             hitSize = 26f;
-            rotateSpeed = 1.65f;
+            rotateSpeed = 2f;
             health = 24000;
             armor = 14f;
             mechStepParticles = true;
@@ -199,7 +199,7 @@ public class UnitTypes implements ContentList{
                 ejectEffect = Fx.casing4;
                 shootSound = Sounds.bang;
 
-                bullet = new BasicBulletType(13f, 150){{
+                bullet = new BasicBulletType(13f, 175){{
                     pierce = true;
                     pierceCap = 20;
                     width = 14f;
@@ -1343,7 +1343,7 @@ public class UnitTypes implements ContentList{
             new Weapon(){{
                 x = y = 0f;
                 mirror = false;
-                reload = 900f;
+                reload = 600f;
                 minShootVelocity = 0.01f;
 
                 soundPitchMin = 1f;
@@ -1738,14 +1738,14 @@ public class UnitTypes implements ContentList{
 
                 bullet = new RailBulletType(){{
                     shootEffect = Fx.railShoot;
-                    length = 500;
+                    length = 500f;
                     updateEffectSeg = 60f;
                     pierceEffect = Fx.railHit;
                     updateEffect = Fx.railTrail;
                     hitEffect = Fx.massiveExplosion;
                     smokeEffect = Fx.shootBig2;
-                    damage = 4000;
-                    pierceDamageFactor = 0.9f;
+                    damage = 2000;
+                    pierceDamageFactor = 0.2f;
                 }};
             }});
         }};
