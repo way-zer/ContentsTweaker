@@ -265,9 +265,9 @@ public class Bullets implements ContentList{
             hitEffect = Fx.blastExplosion;
             despawnEffect = Fx.blastExplosion;
             ammoMultiplier = 3f;
-            lightningDamage = 40;
+            lightningDamage = 60;
             lightning = 2;
-            lightningLength = 20;
+            lightningLength = 13;
         }};
 
         standardCopper = new BasicBulletType(2.5f, 35){{
@@ -292,7 +292,7 @@ public class Bullets implements ContentList{
             height = 13f;
             shootEffect = Fx.shootBig;
             smokeEffect = Fx.shootBigSmoke;
-            ammoMultiplier = 6;
+            ammoMultiplier = 5;
             pierceCap = 2;
             pierceBuilding = true;
             lifetime = 60f;
@@ -328,7 +328,7 @@ public class Bullets implements ContentList{
             hitSize = 4.8f;
             width = 15f;
             height = 21f;
-            pierceCap = 6;
+            pierceCap = 5;
             pierceBuilding = true;
             shootEffect = Fx.shootBig;
             ammoMultiplier = 4;
@@ -336,7 +336,7 @@ public class Bullets implements ContentList{
             knockback = 0.3f;
         }};
 
-        standardThoriumBig = new BasicBulletType(8f, 50, "bullet"){{
+        standardThoriumBig = new BasicBulletType(8f, 60, "bullet"){{
             hitSize = 5;
             width = 16f;
             height = 23f;
@@ -344,9 +344,10 @@ public class Bullets implements ContentList{
             pierceCap = 8;
             pierceBuilding = true;
             knockback = 0.7f;
+            ammoMultiplier = 3;
         }};
 
-        standardIncendiaryBig = new BasicBulletType(7f, 1, "bullet"){{
+        standardIncendiaryBig = new BasicBulletType(7f, 25, "bullet"){{
             width = 16f;
             height = 21f;
             frontColor = Pal.lightishOrange;
@@ -355,11 +356,11 @@ public class Bullets implements ContentList{
             hitEffect = new MultiEffect(Fx.hitBulletSmall, Fx.fireHit);
             shootEffect = Fx.shootBig;
             makeFire = true;
-            pierceCap = 16;
+            pierceCap = 5;
             pierceBuilding = true;
             knockback = 0.6f;
             ammoMultiplier = 3;
-            splashDamage = 15f;
+            splashDamage = 35f;
             splashDamageRadius = 24f;
         }};
 
@@ -414,7 +415,7 @@ public class Bullets implements ContentList{
         }};
 
         heavyWaterShot = new LiquidBulletType(Liquids.water){{
-            lifetime = 49f;
+            lifetime = 65f;
             speed = 4f;
             knockback = 1.7f;
             puddleSize = 8f;
@@ -426,7 +427,7 @@ public class Bullets implements ContentList{
         }};
 
         heavyCryoShot = new LiquidBulletType(Liquids.cryofluid){{
-            lifetime = 49f;
+            lifetime = 65f;
             speed = 4f;
             knockback = 1.3f;
             puddleSize = 8f;
@@ -438,7 +439,7 @@ public class Bullets implements ContentList{
         }};
 
         heavySlagShot = new LiquidBulletType(Liquids.slag){{
-            lifetime = 49f;
+            lifetime = 65f;
             speed = 4f;
             knockback = 1.3f;
             puddleSize = 16f;
@@ -450,7 +451,7 @@ public class Bullets implements ContentList{
         }};
 
         heavyOilShot = new LiquidBulletType(Liquids.oil){{
-            lifetime = 49f;
+            lifetime = 65f;
             speed = 4f;
             knockback = 1.3f;
             puddleSize = 16f;
