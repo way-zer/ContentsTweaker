@@ -1491,7 +1491,7 @@ public class UnitTypes implements ContentList{
                 inaccuracy = 8f;
                 ejectEffect = Fx.casing1;
                 shootSound = Sounds.shoot;
-                bullet = Bullets.flakLead;
+                bullet = Bullets.fragGlassFrag;
             }});
 
             weapons.add(new Weapon("artillery-mount"){{
@@ -1652,7 +1652,7 @@ public class UnitTypes implements ContentList{
                 xRand = 8f;
                 shotDelay = 1f;
 
-                bullet = new MissileBulletType(4.2f, 42){{
+                bullet = new MissileBulletType(4.2f, 56){{
                     homingPower = 0.12f;
                     width = 8f;
                     height = 8f;
@@ -1690,7 +1690,7 @@ public class UnitTypes implements ContentList{
                 shots = 3;
                 shotDelay = 4f;
                 inaccuracy = 1f;
-                bullet = new BasicBulletType(7f, 57){{
+                bullet = new BasicBulletType(7f, 75){{
                     width = 13f;
                     height = 19f;
                     shootEffect = Fx.shootBig;
@@ -1908,7 +1908,7 @@ public class UnitTypes implements ContentList{
                 bullet = new BulletType(){{
                     shootEffect = Fx.sparkShoot;
                     hitEffect = Fx.pointHit;
-                    maxRange = 100f;
+                    maxRange = 150f;
                     damage = 17f;
                 }};
             }});
@@ -2073,7 +2073,7 @@ public class UnitTypes implements ContentList{
 
             buildSpeed = 3f;
 
-            abilities.add(new EnergyFieldAbility(50f, 65f, 180f){{
+            abilities.add(new EnergyFieldAbility(100f, 65f, 180f){{
                 statusDuration = 60f * 6f;
                 maxTargets = 25;
             }});
@@ -2089,7 +2089,7 @@ public class UnitTypes implements ContentList{
                     bullet = new BulletType(){{
                         shootEffect = Fx.sparkShoot;
                         hitEffect = Fx.pointHit;
-                        maxRange = 180f;
+                        maxRange = 240f;
                         damage = 24f;
                     }};
                 }});
