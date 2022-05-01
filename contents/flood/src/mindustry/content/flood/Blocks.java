@@ -1231,6 +1231,10 @@ public class Blocks implements ContentList{
             ambientSound = Sounds.pulse;
             ambientSoundVolume = 0.07f;
 
+            //lc: add more capacity so that it would not stop working at tps<5
+            liquidCapacity = 150f;
+            itemCapacity = 30;
+
             consumes.power(25f);
             consumes.item(Items.blastCompound);
             consumes.liquid(Liquids.cryofluid, 0.25f);
