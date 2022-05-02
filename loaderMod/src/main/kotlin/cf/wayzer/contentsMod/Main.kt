@@ -67,7 +67,8 @@ class Main : Mod() {
         val notFound = mutableListOf<String>()
         ContentsLoader.Api.loadContent(notFound)
         Call.serverPacketReliable("ContentsLoader|load", "LOADED: ${ContentsLoader.Api.lastLoadedPacks}")
-        Call.serverPacketReliable("ContentsLoader|load", "NOTFOUND: $notFound")
+        if (notFound.isNotEmpty())
+            Call.serverPacketReliable("ContentsLoader|load", "NOTFOUND: $notFound")
     }
 
     val patchCache = mutableMapOf<String, String>()
