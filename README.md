@@ -48,6 +48,16 @@ A (h)json file. According to it modify all contents property.
 Client will auto load patch in `config/contents-patch/default.(h)json` (if exists)  
 And will load patch according to map info or server command.(May auto download patch for server)
 
+### 与内容包对比 vs `Contents Pack`
+
+内容补丁为新功能，相比有诸多优势。支持服务器发送，支持离线游玩，抗sync，支持游戏中加载(无需重新加载地图)。
+以及更好的Mod兼容性，使用Patch甚至可以修改其他Mod的属性。  
+`Contents Patch` is a newer feature, many advantages: Support offline, Anti `sync`, Load when play(no need to reload world).
+And better mod compatibility, you can even patch other mod content.
+
+局限性：不能修改物品的类型; 不能使用java代码  
+Limit: Can't change content type; Can't use java code.
+
 ### 示例 Exmaple
 
 ```json5
