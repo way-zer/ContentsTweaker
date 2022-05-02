@@ -1,13 +1,17 @@
 package cf.wayzer.contentsMod
 
 import Contents
+import arc.Events
 import arc.func.Cons
 import arc.func.Prov
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
 import cf.wayzer.ContentsLoader
+import cf.wayzer.ContentsPatcher
 import mindustry.Vars
+import mindustry.game.EventType.PlayEvent
+import mindustry.game.EventType.ResetEvent
 import mindustry.gen.Call
 import mindustry.gen.ClientPacketReliableCallPacket
 import mindustry.mod.Mod
@@ -55,6 +59,7 @@ class Main : Mod() {
 
         Vars.netClient.addPacketHandler("ContentsLoader|load", ContentsLoader.Api.toLoadPacks::add)
         Log.infoTag("ContentsLoader", "Finish Load Mod")
+        registerContentsParser()
     }
 
     fun beforeWorldLoad() {
@@ -63,5 +68,31 @@ class Main : Mod() {
         ContentsLoader.Api.loadContent(notFound)
         Call.serverPacketReliable("ContentsLoader|load", "LOADED: ${ContentsLoader.Api.lastLoadedPacks}")
         Call.serverPacketReliable("ContentsLoader|load", "NOTFOUND: $notFound")
+    }
+
+    val patchCache = mutableMapOf<String, String>()
+    fun registerContentsParser() {
+        Events.on(ResetEvent::class.java) { ContentsPatcher.Api.reset() }
+        fun loadPatch(name: String) {
+            if (name !in patchCache) {
+                val localFile = Vars.dataDirectory.child("contents-patch").run {
+                    child("$name.hjson").takeIf { it.exists() }
+                        ?: child("$name.json").takeIf { it.exists() }
+                } ?: return Call.serverPacketReliable("ContentsLoader|requestPatch", name)
+                patchCache[name] = localFile.readString()
+            }
+            ContentsPatcher.Api.load(patchCache[name]!!)
+        }
+        Events.on(PlayEvent::class.java) {
+            loadPatch("default")
+            val list = Vars.state.rules.tags.get(ContentsPatcher.Api.tagName) ?: return@on
+            list.split(";").forEach { loadPatch(it) }
+        }
+        Vars.netClient.addPacketHandler("ContentsLoader|loadPatch", ::loadPatch)
+        Vars.netClient.addPacketHandler("ContentsLoader|newPatch") {
+            val (name, content) = it.split('\n', limit = 2)
+            patchCache[name] = content
+            ContentsPatcher.Api.load(content)
+        }
     }
 }
