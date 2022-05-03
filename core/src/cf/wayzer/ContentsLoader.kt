@@ -133,7 +133,7 @@ object ContentsLoader : ContentLoader() {
             "origin" to { contents.forEach { it.content = it.default } }
         )
         val toLoadPacks = mutableListOf<String>()
-        var lastLoadedPacks = listOf<String>()
+        var lastLoadedPacks = listOf("origin")
             private set
 
         //platform impl
