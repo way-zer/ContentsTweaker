@@ -756,8 +756,8 @@ public class Blocks implements ContentList{
             requirements(Category.defense, with(Items.phaseFabric, 6));
             health = 250 * wallHealthMultiplier;
             chanceDeflect = 0f;
-            flashHit = true;
             absorbLasers = true;
+            insulated = true;
         }};
 
         phaseWallLarge = new Wall("phase-wall-large"){{
@@ -773,6 +773,7 @@ public class Blocks implements ContentList{
             health = 300 * wallHealthMultiplier;
             lightningChance = 0f;
             absorbLasers = true;
+            insulated = true;
         }};
 
         surgeWallLarge = new Wall("surge-wall-large"){{
@@ -1556,7 +1557,7 @@ public class Blocks implements ContentList{
             requirements(Category.turret, with(Items.copper, 50, Items.lead, 50));
             shootType = new LightningBulletType(){{
                 damage = 25;
-                lightningLength = 5;
+                lightningLength = 12;
                 collidesAir = false;
                 ammoMultiplier = 1f;
             }};
