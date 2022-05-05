@@ -1491,7 +1491,7 @@ public class UnitTypes implements ContentList{
                 inaccuracy = 8f;
                 ejectEffect = Fx.casing1;
                 shootSound = Sounds.shoot;
-                bullet = Bullets.fragGlassFrag;
+                bullet = Bullets.fragGlass;
             }});
 
             weapons.add(new Weapon("artillery-mount"){{
