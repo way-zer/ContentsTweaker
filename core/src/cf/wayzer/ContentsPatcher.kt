@@ -140,9 +140,9 @@ object ContentsPatcher {
                 val new = readType(field.type, prop, field.field) ?: error("Fail to parse value: NULL")
                 bakField.putIfAbsent(id) { field.set(field.obj) }
                 field.set(new)
-                Log.info("Load Content $id = ${prop.toJson(JsonWriter.OutputType.javascript)}")
+                Log.debug("Load Content $id = ${prop.toJson(JsonWriter.OutputType.javascript)}")
             } catch (e: Throwable) {
-                Log.err("Fail to handle Content \"$id\"", e)
+                Log.err("Fail to handle Content Patch \"$id\"", e)
             }
         }
     }
