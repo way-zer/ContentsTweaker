@@ -1,5 +1,6 @@
 package cf.wayzer
 
+import arc.func.Prov
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
@@ -18,6 +19,7 @@ import mindustry.io.JsonIO
 import mindustry.mod.ContentParser
 import mindustry.mod.Mods
 import mindustry.type.Item
+import mindustry.type.UnitType
 import mindustry.world.consumers.*
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -43,6 +45,7 @@ object ContentsPatcher {
     @Suppress("UNCHECKED_CAST")
     fun <T> readType(cls: Class<T>, jsonValue: JsonValue, field: Field? = null): T? {
         return when (cls) {
+            Prov::class.java -> reflectSupply(reflectResolve(jsonValue.asString(), null)) as T?
             Consumers::class.java -> Consumers().apply {
                 jsonValue.forEach { child ->
                     when (child.name) {
@@ -108,6 +111,9 @@ object ContentsPatcher {
                         }
                     }
                 }
+                is UnitType -> {
+                    if (key == "requirements") error("UnSupport modify UnitType.requirements.")
+                }
             }
             return getField(baseObj, key).run {
                 val obj = get(baseObj)
@@ -152,6 +158,18 @@ object ContentsPatcher {
                     isAccessible = true
             }
         }
+    }
+
+    private fun reflectSupply(cls: Class<*>): Prov<*> {
+        val method = ContentParser::class.java.getDeclaredMethod("supply", Class::class.java)
+        method.isAccessible = true
+        return method.invoke(Vars.mods.parser, cls) as Prov<*>
+    }
+
+    private fun reflectResolve(name: String, def: Class<*>?): Class<*> {
+        val method = ContentParser::class.java.getDeclaredMethod("resolve", String::class.java, Class::class.java)
+        method.isAccessible = true
+        return method.invoke(Vars.mods.parser, name, def) as Class<*>
     }
 
     object Api {
