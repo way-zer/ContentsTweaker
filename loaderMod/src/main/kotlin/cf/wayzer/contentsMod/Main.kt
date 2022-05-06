@@ -10,7 +10,7 @@ import arc.util.Log
 import cf.wayzer.ContentsLoader
 import cf.wayzer.ContentsPatcher
 import mindustry.Vars
-import mindustry.game.EventType.PlayEvent
+import mindustry.game.EventType
 import mindustry.game.EventType.ResetEvent
 import mindustry.gen.Call
 import mindustry.gen.ClientPacketReliableCallPacket
@@ -84,7 +84,7 @@ class Main : Mod() {
             }
             ContentsPatcher.Api.load(patchCache[name]!!)
         }
-        Events.on(PlayEvent::class.java) {
+        Events.on(EventType.WorldLoadEvent::class.java) {
             loadPatch("default")
             val list = Vars.state.rules.tags.get(ContentsPatcher.Api.tagName) ?: return@on
             list.split(";").forEach { loadPatch(it) }

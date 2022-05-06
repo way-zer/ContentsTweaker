@@ -14,6 +14,7 @@ import mindustry.Vars
 import mindustry.content.Bullets
 import mindustry.ctype.Content
 import mindustry.ctype.ContentType
+import mindustry.ctype.MappableContent
 import mindustry.entities.bullet.BulletType
 import mindustry.io.JsonIO
 import mindustry.mod.ContentParser
@@ -35,21 +36,22 @@ object ContentsPatcher {
     }
 
 
-    private fun findContent(type: ContentType, name: String): Content {
+    private fun findContent(type: ContentType, name: String): Content? {
         return when (type) {
             ContentType.bullet -> bulletMap[Strings.kebabToCamel(name)]
-            else -> Vars.content.getByName(type, Strings.camelToKebab(name))
-        } ?: error("Not found $type : $name")
+            else -> Vars.content.getByName<MappableContent>(type, Strings.camelToKebab(name))
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T> readType(cls: Class<T>, jsonValue: JsonValue, field: Field? = null): T? {
         return when (cls) {
+            Item::class.java -> findContent(ContentType.item, jsonValue.asString()) as T?
             Prov::class.java -> reflectSupply(reflectResolve(jsonValue.asString(), null)) as T?
             Consumers::class.java -> Consumers().apply {
                 jsonValue.forEach { child ->
                     when (child.name) {
-                        "item" -> item(findContent(ContentType.item, child.asString()) as Item)
+                        "item" -> item(readType(Item::class.java, child))
                         "items" -> add(readType(ConsumeItems::class.java, child))
                         "liquid" -> add(readType(ConsumeLiquid::class.java, child))
                         "coolant" -> add(readType(ConsumeCoolant::class.java, child))
@@ -77,8 +79,8 @@ object ContentsPatcher {
     @Suppress("UNCHECKED_CAST")
     fun resolveObj(baseObj: Any, keys: String): MyField {
         fun resolveKey(last: MyField, key: String): MyField {
-            when (val obj = last.obj) {
-                null -> error("Can't resolve '$key' on NULL")
+            val obj = last.obj ?: error("Can't resolve '$key' on NULL")
+            when (obj) {
                 is ObjectMap<*, *> -> {
                     (last as? MyField.Mutable)?.field?.run(::FieldMetadata)?.let { meta ->
                         if (meta.keyType != null) {
@@ -115,9 +117,9 @@ object ContentsPatcher {
                     if (key == "requirements") error("UnSupport modify UnitType.requirements.")
                 }
             }
-            return getField(baseObj, key).run {
-                val obj = get(baseObj)
-                MyField.Mutable(obj, type, this) { set(obj, it) }
+            return getField(obj, key).run {
+                val objN = get(obj)
+                MyField.Mutable(objN, type, this) { set(obj, it) }
             }
         }
 
@@ -132,6 +134,7 @@ object ContentsPatcher {
     private val bakField = mutableMapOf<String, () -> Unit>()
     private fun handleContent(type: String, value: JsonValue) {
         val content: Any = findContent(ContentType.valueOf(type), value.name)
+            ?: return Log.warn("Fail to find $type: ${value.name}")
         value.forEach { prop ->
             val id = "$type.${value.name}.${prop.name}"
             try {
