@@ -1,5 +1,7 @@
 package cf.wayzer
 
+import arc.struct.ObjectMap
+import arc.struct.Seq
 import arc.util.Log
 import arc.util.Strings
 import arc.util.serialization.Json
@@ -17,6 +19,7 @@ import mindustry.mod.Mods
 import mindustry.type.Item
 import mindustry.world.consumers.*
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 object ContentsPatcher {
     private val Mods.parser: ContentParser by reflectDelegate()
@@ -60,16 +63,74 @@ object ContentsPatcher {
         }
     }
 
+    open class MyField(val obj: Any) {
+        class Mutable(obj: Any, val type: Class<*>, val set: (Any) -> Unit) : MyField(obj)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun resolveObj(baseObj: Any, keys: String): MyField {
+        fun resolveKey(last: MyField, key: String): MyField {
+            when (val obj = last.obj) {
+                is ObjectMap<*, *> -> {
+                    if (!obj.isEmpty) {
+                        when (val mapKey = obj.keys().first()) {
+                            is String -> return (obj as ObjectMap<String, Any>).run {
+                                var type = get(key).javaClass
+                                if (Modifier.isFinal(type.modifiers)) type = type.superclass
+                                MyField.Mutable(get(key), type) { put(key, it) }
+                            }
+                            is Content -> return (obj as ObjectMap<Content, Any>).run {
+                                val keyN = findContent(mapKey.contentType, key)
+                                var type = get(keyN).javaClass
+                                if (Modifier.isFinal(type.modifiers)) type = type.superclass
+                                MyField.Mutable(get(keyN), type) { put(keyN, it) }
+                            }
+                        }
+                    }
+                }
+                is Seq<*> -> {
+                    if (last is MyField.Mutable && key == "+") {//appear
+                        return MyField.Mutable(obj, last.type) {
+                            last.set(obj.copy().addAll(it as Seq<out Nothing>))
+                        }
+                    }
+                    return MyField(obj.get(key.toInt()))
+                }
+                is Consumers -> {
+                    if (last is MyField.Mutable && key == "+") {
+                        return MyField.Mutable(obj, last.type) {
+                            last.set(Consumers().apply {
+                                obj.all().forEach(this::add)
+                                (it as Consumers).all().forEach(this::add)
+                                init()
+                            })
+                        }
+                    }
+                }
+            }
+            return getField(baseObj, key).run {
+                MyField.Mutable(get(baseObj), type) { set(baseObj, it) }
+            }
+        }
+
+        return try {
+            val spKeys = keys.split(".")
+            spKeys.fold(MyField(baseObj), ::resolveKey)
+        } catch (e: Throwable) {
+            throw Error("Can't resolve key '$keys' on $baseObj", e)
+        }
+    }
+
     private val bakField = mutableMapOf<String, () -> Unit>()
     private fun handleContent(type: String, value: JsonValue) {
         val content: Any = findContent(ContentType.valueOf(type), value.name)
         value.forEach { prop ->
             val id = "$type.${value.name}.${prop.name}"
             try {
-                val (obj, field) = resolveObj(content, prop.name)
-                val bakV = field.get(obj)
-                bakField.putIfAbsent(id) { field.set(obj, bakV) }
-                field.set(obj, readType(field.type, prop))
+                val field = this.resolveObj(content, prop.name)
+                if (field !is MyField.Mutable) error("target property is not mutable.")
+                bakField.putIfAbsent(id) { field.set(field.obj) }
+                field.set(readType(field.type, prop))
                 Log.info("Load Content $id = ${prop.toJson(JsonWriter.OutputType.javascript)}")
             } catch (e: Throwable) {
                 Log.err("Fail to handle Content \"$id\"", e)
@@ -84,20 +145,10 @@ object ContentsPatcher {
             cls = cls.superclass
         return fieldCache.getOrPut(cls to name) {
             cls.getField(name).apply {
-                if (name == "consumes")
+                if (Modifier.isFinal(modifiers))
                     isAccessible = true
             }
         }
-    }
-
-    private fun resolveObj(obj: Any, key: String): Pair<Any, Field> {
-        var o = obj
-        var field: Field? = null
-        for (it in key.split(".")) {
-            if (field != null) o = field.get(o)
-            field = getField(o, it)
-        }
-        return o to field!!
     }
 
     object Api {
