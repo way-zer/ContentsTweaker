@@ -1,8 +1,11 @@
 package cf.wayzer
 
+import arc.struct.ObjectMap
+import arc.struct.Seq
 import arc.util.Log
 import arc.util.Strings
 import arc.util.serialization.Json
+import arc.util.serialization.Json.FieldMetadata
 import arc.util.serialization.JsonValue
 import arc.util.serialization.JsonWriter
 import cf.wayzer.util.reflectDelegate
@@ -17,6 +20,7 @@ import mindustry.mod.Mods
 import mindustry.type.Item
 import mindustry.world.consumers.*
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 object ContentsPatcher {
     private val Mods.parser: ContentParser by reflectDelegate()
@@ -37,7 +41,7 @@ object ContentsPatcher {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> readType(cls: Class<T>, jsonValue: JsonValue): T {
+    fun <T> readType(cls: Class<T>, jsonValue: JsonValue, field: Field? = null): T? {
         return when (cls) {
             Consumers::class.java -> Consumers().apply {
                 jsonValue.forEach { child ->
@@ -55,8 +59,67 @@ object ContentsPatcher {
                     }
                 }
                 init()
-            } as T
-            else -> json.readValue(cls, jsonValue)
+            } as T?
+            else -> {
+                val meta = field?.run(::FieldMetadata)
+                json.readValue(cls, meta?.elementType, jsonValue, meta?.keyType)
+            }
+        }
+    }
+
+    open class MyField(open val obj: Any?) {
+        data class Mutable(override val obj: Any?, val type: Class<*>, val field: Field? = null, val set: (Any?) -> Unit) : MyField(obj)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun resolveObj(baseObj: Any, keys: String): MyField {
+        fun resolveKey(last: MyField, key: String): MyField {
+            when (val obj = last.obj) {
+                null -> error("Can't resolve '$key' on NULL")
+                is ObjectMap<*, *> -> {
+                    (last as? MyField.Mutable)?.field?.run(::FieldMetadata)?.let { meta ->
+                        if (meta.keyType != null) {
+                            val keyN = readType(meta.keyType, JsonValue(key))
+                            return (obj as ObjectMap<Any, Any>).run {
+                                if (meta.elementType == null) MyField(obj.get(keyN))
+                                else MyField.Mutable(get(keyN), meta.elementType) {
+                                    if (it == null) remove(keyN) else put(keyN, it)
+                                }
+                            }
+                        }
+                    }
+                }
+                is Seq<*> -> {
+                    if (last is MyField.Mutable && key == "+") {//appear
+                        return last.copy {
+                            last.set(obj.copy().addAll(it as Seq<out Nothing>))
+                        }
+                    }
+                    return MyField(obj.get(key.toInt()))
+                }
+                is Consumers -> {
+                    if (last is MyField.Mutable && key == "+") {
+                        return last.copy {
+                            last.set(Consumers().apply {
+                                obj.all().forEach(this::add)
+                                (it as Consumers).all().forEach(this::add)
+                                init()
+                            })
+                        }
+                    }
+                }
+            }
+            return getField(baseObj, key).run {
+                val obj = get(baseObj)
+                MyField.Mutable(obj, type, this) { set(obj, it) }
+            }
+        }
+
+        return try {
+            val spKeys = keys.split(".")
+            spKeys.fold(MyField(baseObj), ::resolveKey)
+        } catch (e: Throwable) {
+            throw Error("Can't resolve key '$keys' on $baseObj", e)
         }
     }
 
@@ -66,10 +129,11 @@ object ContentsPatcher {
         value.forEach { prop ->
             val id = "$type.${value.name}.${prop.name}"
             try {
-                val (obj, field) = resolveObj(content, prop.name)
-                val bakV = field.get(obj)
-                bakField.putIfAbsent(id) { field.set(obj, bakV) }
-                field.set(obj, readType(field.type, prop))
+                val field = this.resolveObj(content, prop.name)
+                if (field !is MyField.Mutable) error("target property is not mutable.")
+                val new = readType(field.type, prop, field.field) ?: error("Fail to parse value: NULL")
+                bakField.putIfAbsent(id) { field.set(field.obj) }
+                field.set(new)
                 Log.info("Load Content $id = ${prop.toJson(JsonWriter.OutputType.javascript)}")
             } catch (e: Throwable) {
                 Log.err("Fail to handle Content \"$id\"", e)
@@ -84,20 +148,10 @@ object ContentsPatcher {
             cls = cls.superclass
         return fieldCache.getOrPut(cls to name) {
             cls.getField(name).apply {
-                if (name == "consumes")
+                if (Modifier.isFinal(modifiers))
                     isAccessible = true
             }
         }
-    }
-
-    private fun resolveObj(obj: Any, key: String): Pair<Any, Field> {
-        var o = obj
-        var field: Field? = null
-        for (it in key.split(".")) {
-            if (field != null) o = field.get(o)
-            field = getField(o, it)
-        }
-        return o to field!!
     }
 
     object Api {
