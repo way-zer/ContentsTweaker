@@ -1,6 +1,7 @@
 package cf.wayzer
 
 import arc.func.Prov
+import arc.struct.EnumSet
 import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Log
@@ -37,6 +38,7 @@ object ContentsPatcher {
 
 
     private fun findContent(type: ContentType, name: String): Content? {
+        @Suppress("RemoveExplicitTypeArguments")
         return when (type) {
             ContentType.bullet -> bulletMap[Strings.kebabToCamel(name)]
             else -> Vars.content.getByName<MappableContent>(type, Strings.camelToKebab(name))
@@ -44,9 +46,13 @@ object ContentsPatcher {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> readType(cls: Class<T>, jsonValue: JsonValue, field: Field? = null): T? {
+    fun <T> readType(cls: Class<T>, jsonValue: JsonValue, elementType: Class<*>? = null, keyType: Class<*>? = null): T? {
         return when (cls) {
             Item::class.java -> findContent(ContentType.item, jsonValue.asString()) as T?
+            EnumSet::class.java -> {
+                @Suppress("TYPE_MISMATCH_WARNING")
+                EnumSet.of(*readType(Array::class.java, jsonValue, elementType, keyType) as Array<out Enum<*>>) as T?
+            }
             Prov::class.java -> reflectSupply(reflectResolve(jsonValue.asString(), null)) as T?
             Consumers::class.java -> Consumers().apply {
                 jsonValue.forEach { child ->
@@ -65,10 +71,7 @@ object ContentsPatcher {
                 }
                 init()
             } as T?
-            else -> {
-                val meta = field?.run(::FieldMetadata)
-                json.readValue(cls, meta?.elementType, jsonValue, meta?.keyType)
-            }
+            else -> json.readValue(cls, elementType, jsonValue, keyType)
         }
     }
 
@@ -127,7 +130,7 @@ object ContentsPatcher {
             val spKeys = keys.split(".")
             spKeys.fold(MyField(baseObj), ::resolveKey)
         } catch (e: Throwable) {
-            throw Error("Can't resolve key '$keys' on $baseObj", e)
+            error("Can't resolve key '$keys' on $baseObj \n\t$e")
         }
     }
 
@@ -140,12 +143,13 @@ object ContentsPatcher {
             try {
                 val field = this.resolveObj(content, prop.name)
                 if (field !is MyField.Mutable) error("target property is not mutable.")
-                val new = readType(field.type, prop, field.field) ?: error("Fail to parse value: NULL")
+                val meta = field.field?.run(::FieldMetadata)
+                val new = readType(field.type, prop, meta?.elementType, meta?.keyType) ?: error("Fail to parse value: NULL")
                 bakField.putIfAbsent(id) { field.set(field.obj) }
                 field.set(new)
                 Log.debug("Load Content $id = ${prop.toJson(JsonWriter.OutputType.javascript)}")
             } catch (e: Throwable) {
-                Log.err("Fail to handle Content Patch \"$id\"", e)
+                Log.err("Fail to handle Content Patch \"$id\": \n\t$e")
             }
         }
     }
