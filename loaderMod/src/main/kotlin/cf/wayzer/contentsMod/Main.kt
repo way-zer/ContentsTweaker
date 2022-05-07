@@ -10,7 +10,7 @@ import arc.util.Log
 import cf.wayzer.ContentsLoader
 import cf.wayzer.ContentsPatcher
 import mindustry.Vars
-import mindustry.game.EventType.PlayEvent
+import mindustry.game.EventType
 import mindustry.game.EventType.ResetEvent
 import mindustry.gen.Call
 import mindustry.gen.ClientPacketReliableCallPacket
@@ -18,6 +18,7 @@ import mindustry.mod.Mod
 import mindustry.net.Net
 import mindustry.net.Packet
 import mindustry.net.Packets
+import kotlin.system.measureTimeMillis
 
 class MYClientPacketReliableCallPacket : ClientPacketReliableCallPacket() {
     override fun getPriority(): Int {
@@ -75,16 +76,19 @@ class Main : Mod() {
     fun registerContentsParser() {
         Events.on(ResetEvent::class.java) { ContentsPatcher.Api.reset() }
         fun loadPatch(name: String) {
-            if (name !in patchCache) {
-                val localFile = Vars.dataDirectory.child("contents-patch").run {
-                    child("$name.hjson").takeIf { it.exists() }
-                        ?: child("$name.json").takeIf { it.exists() }
-                } ?: return Call.serverPacketReliable("ContentsLoader|requestPatch", name)
-                patchCache[name] = localFile.readString()
+            val time = measureTimeMillis {
+                if (name !in patchCache) {
+                    val localFile = Vars.dataDirectory.child("contents-patch").run {
+                        child("$name.hjson").takeIf { it.exists() }
+                            ?: child("$name.json").takeIf { it.exists() }
+                    } ?: return Call.serverPacketReliable("ContentsLoader|requestPatch", name)
+                    patchCache[name] = localFile.readString()
+                }
+                ContentsPatcher.Api.load(patchCache[name]!!)
             }
-            ContentsPatcher.Api.load(patchCache[name]!!)
+            Log.info("Load Content Patch '$name' costs $time ms")
         }
-        Events.on(PlayEvent::class.java) {
+        Events.on(EventType.WorldLoadEvent::class.java) {
             loadPatch("default")
             val list = Vars.state.rules.tags.get(ContentsPatcher.Api.tagName) ?: return@on
             list.split(";").forEach { loadPatch(it) }
