@@ -26,4 +26,4 @@ jobs:
       - name: Upload MOD JAR
         uses: actions/upload-artifact@v2
         with:
-          path: loaderMod/build/dist/*
+          path: build/dist/*

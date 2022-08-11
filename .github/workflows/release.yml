@@ -30,4 +30,4 @@ jobs:
       - name: upload artifacts
         uses: softprops/action-gh-release@v1
         with:
-          files: loaderMod/build/dist/*
+          files: build/dist/*
