@@ -72,7 +72,7 @@ val jarAndroid = tasks.create("jarAndroid") {
     }
 }
 
-tasks.create("install", Copy::class.java) {
+tasks.create("devInstall", Copy::class.java) {
     dependsOn(shadowTask)
     from(shadowTask.archiveFile.get())
     into(System.getenv("AppData") + "/mindustry/mods")
