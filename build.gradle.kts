@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.6.10"
@@ -86,8 +85,4 @@ tasks.create("dist", Jar::class.java) {
     from(zipTree(jarAndroid.outputs.files.first()))
     destinationDirectory.set(buildDir.resolve("dist"))
     archiveFileName.set("ContentsTweaker-${rootProject.version}.jar")
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    languageVersion = "1.7"
 }
