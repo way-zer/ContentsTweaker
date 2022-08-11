@@ -1,7 +1,7 @@
-[![Build](https://github.com/way-zer/MindustryContents/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/way-zer/MindustryContents/actions/workflows/build.yml)
-[![](https://jitpack.io/v/way-zer/MindustryContents.svg)](https://jitpack.io/#way-zer/MindustryContents)
+[![Build](https://github.com/way-zer/ContentsTweaker/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/way-zer/ContentsTweaker/actions/workflows/build.yml)
+[![](https://jitpack.io/v/way-zer/ContentsTweaker.svg)](https://jitpack.io/#way-zer/ContentsTweaker)
 
-# MindustryContentsLoader
+# ContentsTweaker (for Mindustry)
 
 一个`内容包`加载器的像素工厂MOD  
 A Mindustry MOD to dynamically load `Contents Patch`
