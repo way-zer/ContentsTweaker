@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 }
 
-group = "cf.wayzer.MindustryContents"
+group = "cf.wayzer"
 version = System.getenv().getOrDefault("VERSION", "2.0-SNAPSHOT")
 
 repositories {
