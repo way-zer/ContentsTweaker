@@ -13,10 +13,10 @@ autolabeler:
       - 'core/**'
   - label: 'contents:flood'
     files:
-      - 'contents/flood/**'
+      - 'contents/flood.json'
   - label: 'contents'
     files:
-      - 'contents/src/**'
+      - 'contents/**'
   - label: 'mod'
     files:
       - 'loaderMod/**'

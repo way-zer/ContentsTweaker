@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="11" />
+    <bytecodeTargetLevel target="11">
+      <module name="MindustryContents.contents.flood.main" target="1.8" />
+      <module name="MindustryContents.contents.flood.test" target="1.8" />
+      <module name="MindustryContents.contents.main" target="1.8" />
+      <module name="MindustryContents.contents.origin.main" target="1.8" />
+      <module name="MindustryContents.contents.origin.test" target="1.8" />
+      <module name="MindustryContents.contents.test" target="1.8" />
+      <module name="MindustryContents.core.main" target="1.8" />
+      <module name="MindustryContents.core.test" target="1.8" />
+      <module name="MindustryContents.loaderMod.main" target="1.8" />
+      <module name="MindustryContents.loaderMod.test" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

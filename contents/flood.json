@@ -1,0 +1,387 @@
+{
+  //TODO merge to v136
+  "block": {
+    "conveyor": {
+      "health": 40
+    },
+    "armored-conveyor": {
+      "health": 100
+    },
+    "liquid-junction": {
+      "health": 180
+    },
+    "scrap-wall": {
+      "health": 240
+    },
+    "copper-wall": {
+      "health": 340
+    },
+    "titanium-wall": {
+      "health": 460
+    },
+    "thorium-wall": {
+      "health": 600
+    },
+    "plastanium-wall": {
+      "health": 800
+    },
+    "phase-wall": {
+      "health": 1000,
+      "chanceDeflect": 0,
+      "absorbLasers": true,
+      "insulated": true,
+      "flashHit": false
+    },
+    "surge-wall": {
+      "health": 1200,
+      "absorbLasers": true,
+      "insulated": true,
+      "lightningChance": 0
+    },
+    "vault": {
+      "group": "transportation"
+    },
+    "container": {
+      "group": "transportation"
+    },
+    "mender": {
+      "healPercent": 1
+    },
+    "mend-projector": {
+      "healPercent": 2.5
+    },
+    "force-projector": {
+      "shieldHealth": 2500
+    },
+    "thorium-reactor": {
+      "health": 2000
+    },
+    "impact-reactor": {
+      "liquidCapacity": 150,
+      "itemCapacity": 30
+    },
+    "lancer": {
+      "range": 180,
+      "reloadTime": 160,
+      "shootType.damage": 30,
+      "shootType.length": 185
+    },
+    "arc": {
+      "range": 30,
+      "reloadTime": 60,
+      "shootType.damage": 25,
+      "shootType.lightningLength": 9
+    },
+    "parallax": {
+      "force": 8,
+      "scaledForce": 7,
+      "damage": 6
+    },
+    "swarmer": {
+      "reloadTime": 25,
+      "shots": 5,
+      "burstSpacing": 4
+    },
+    "salvo": {
+      "range": 200,
+      "reloadTime": 30
+    },
+    "tsunami": {
+      "recoilAmount": 0,
+      "reloadTime": 2,
+      "range": 250,
+      "inaccuracy": 2
+    },
+    "fuse": {
+      "range": 135,
+      "reloadTime": 270,
+      "ammoTypes.titanium.damage": 200,
+      "ammoTypes.titanium.ammoMultiplier": 1,
+      "ammoTypes.titanium.reloadMultiplier": 1.5,
+      "ammoTypes.thorium.damage": 500,
+      "ammoTypes.thorium.ammoMultiplier": 1
+    },
+    "foreshadow": {
+      "maxAmmo": 60,
+      "ammoPerShot": 20,
+      "ammoTypes.surgeAlloy": {
+        "type": "RailBulletType",
+        "shootEffect": "railShoot",
+        "length": 500,
+        "updateEffectSeg": 60,
+        "pierceEffect": "railHit",
+        "updateEffect": "railTrail",
+        "hitEffect": "massiveExplosion",
+        "smokeEffect": "shootBig2",
+        "damage": 2000,
+        "pierceDamageFactor": 0.3
+      }
+    }
+  },
+  "bullet": {
+    "fragGlass": {
+      "damage": 20,
+      "ammoMultiplier": 6
+    },
+    "fragPlastic": {
+      "damage": 30,
+      "splashDamageRadius": 60,
+      "ammoMultiplier": 4
+    },
+    "fragExplosive": {
+      "damage": 20,
+      "splashDamage": 60,
+      "splashDamageRadius": 60,
+      "ammoMultiplier": 7
+    },
+    "fragSurge": {
+      "damage": 35,
+      "splashDamage": 110,
+      "lightningDamage": 40
+    },
+    "missileExplosive": {
+      "damage": 50,
+      "splashDamage": 110,
+      "ammoMultiplier": 4
+    },
+    "missileIncendiary": {
+      "damage": 60,
+      "splashDamage": 60,
+      "ammoMultiplier": 4
+    },
+    "missileSurge": {
+      "damage": 60,
+      "splashDamage": 60,
+      "ammoMultiplier": 3,
+      "lightningDamage": 60,
+      "lightningLength": 13
+    },
+    "standardCopper": {
+      "damage": 35,
+      "ammoMultiplier": 5
+    },
+    "standardDense": {
+      "damage": 50,
+      "ammoMultiplier": 6
+    },
+    "standardThorium": {
+      "damage": 60,
+      "ammoMultiplier": 5,
+      "pierceCap": 2,
+      "pierceBuilding": true
+    },
+    "standardHoming": {
+      "damage": 50,
+      "ammoMultiplier": 6
+    },
+    "standardIncendiary": {
+      "damage": 55,
+      "ammoMultiplier": 6,
+      "splashDamage": 25
+    },
+    "standardDenseBig": {
+      "pierceCap": 5,
+      "pierceBuilding": true
+    },
+    "standardThoriumBig": {
+      "damage": 60,
+      "pierceCap": 8,
+      "ammoMultiplier": 3
+    },
+    "standardIncendiaryBig": {
+      "pierceCap": 5,
+      "splashDamage": 25
+    },
+    "basicFlame": {
+      "damage": 40,
+      "ammoMultiplier": 6
+    },
+    "pyraFlame": {
+      "damage": 100,
+      "ammoMultiplier": 10
+    },
+    "slagShot": {
+      "damage": 8
+    },
+    "oilShot": {
+      "damage": 3
+    },
+    "heavyWaterShot": {
+      "lifetime": 65,
+      "damage": 1
+    },
+    "heavyCryoShot": {
+      "lifetime": 65,
+      "damage": 3
+    },
+    "heavySlagShot": {
+      "lifetime": 65,
+      "damage": 12
+    },
+    "heavyOilShot": {
+      "lifetime": 65,
+      "damage": 5
+    }
+  },
+  "unit": {
+    "scepter": {
+      "speed": 0.55,
+      "rotateSpeed": 2.3,
+      "weapons.0.bullet.lightningLength": 15,
+      "weapons.0.bullet.lightningDamage": 80,
+      "weapons.1.bullet.lightningLength": 15,
+      "weapons.1.bullet.lightningDamage": 80
+    },
+    "reign": {
+      "speed": 0.5,
+      "rotateSpeed": 2,
+      "weapons.0.bullet.damage": 175,
+      "weapons.0.bullet.pierceCap": 20,
+      "weapons.0.bullet.lifetime": 20,
+      "weapons.0.bullet.fragBullet.damage": 25,
+      "weapons.0.bullet.fragBullet.splashDamage": 25,
+      "weapons.1.bullet.damage": 175,
+      "weapons.1.bullet.pierceCap": 20,
+      "weapons.1.bullet.lifetime": 20,
+      "weapons.1.bullet.fragBullet.damage": 25,
+      "weapons.1.bullet.fragBullet.splashDamage": 25
+    },
+    "nova": {
+      "weapons.0.bullet.healPercent": 2,
+      "weapons.1.bullet.healPercent": 2
+    },
+    "pulsar": {
+      "weapons.0.bullet.healPercent": 1,
+      "weapons.0.bullet.lightningType.healPercent": 1,
+      "weapons.1.bullet.healPercent": 1,
+      "weapons.1.bullet.lightningType.healPercent": 1
+    },
+    "quasar": {
+      "weapons.0.bullet.healPercent": 5,
+      "weapons.1.bullet.healPercent": 5
+    },
+    "vela": {
+      "weapons.0.bullet.damage": 25,
+      "weapons.0.bullet.healPercent": 0.4,
+      "weapons.1.repairSpeed": 1,
+      "weapons.2.repairSpeed": 1
+    },
+    "corvus": {
+      "weapons.0.bullet.length": 600,
+      "weapons.0.bullet.damage": 800,
+      "weapons.0.bullet.lightningLength": 10,
+      "weapons.0.bullet.lightningDamage": 85,
+    },
+    "spiroct": {
+      "weapons.0.bullet.damage": 26,
+      "weapons.1.bullet.damage": 26,
+      "weapons.2.bullet.sapStrength": 0.5,
+      "weapons.2.bullet.damage": 25,
+      "weapons.3.bullet.sapStrength": 0.5,
+      "weapons.3.bullet.damage": 25
+    },
+    "arkyid": {
+      "weapons.0.bullet.sapStrength": 0.2,
+      "weapons.0.bullet.damage": 90,
+      "weapons.7.bullet.damage": 25,
+      "weapons.7.bullet.lifetime": 30,
+    },
+    "toxopid": {
+      "legSplashDamage": 200,
+      "weapons.0.bullet.damage": 150,
+      "weapons.1.bullet.damage": 150,
+      "weapons.2.bullet.damage": 75,
+      "weapons.2.bullet.splashDamage": 100,
+      "weapons.2.bullet.fragBullet.damage": 50,
+      "weapons.2.bullet.fragBullet.splashDamage": 60
+    },
+    "flare": {
+      "health": 200
+    },
+    "horizon": {
+      "defaultController": "BuilderAI",
+      "health": 400,
+      "speed": 2.5,
+      "buildSpeed": 0.25,
+      "weapons.0.bullet.damage": 0,
+      "weapons.1.bullet.damage": 0
+    },
+    "zenith": {
+      "health": 1400,
+    },
+    "poly": {
+      "weapons.0.bullet.healPercent": 3,
+      "weapons.1.bullet.healPercent": 3
+    },
+    "mega": {
+      "weapons.0.bullet.healPercent": 3,
+      "weapons.1.bullet.healPercent": 3,
+      "weapons.2.bullet.healPercent": 3,
+      "weapons.3.bullet.healPercent": 3
+    },
+    "quad": {
+      "weapons.0.reload": 600,
+      "weapons.0.bullet.healPercent": 10,
+      "weapons.0.bullet.splashDamage": 6000,
+      "weapons.0.bullet.splashDamageRadius": 40
+    },
+    "oct": {
+      "abilities.+": [
+        {
+          "type": "StatusFieldAbility",
+          "effect": "overclock",
+          "duration": 600,
+          "reload": 600,
+          "range": 120
+        }
+      ],
+    },
+    "minke": {
+      "weapons.0.bullet": "fragGlass",
+      "weapons.1.bullet": "fragGlass"
+    },
+    "sei": {
+      "weapons.0.bullet.damage": 56,
+      "weapons.1.bullet.damage": 75,
+      "weapons.2.bullet.damage": 75
+    },
+    "omura": {
+      "weapons.0.bullet.length": 500,
+      "weapons.0.bullet.damage": 2000,
+      "weapons.0.bullet.pierceDamageFactor": 0.2
+    },
+    "oxynoe": {
+      "weapons.2.bullet.maxRange": 150
+    },
+    "aegires": {
+      "abilities.0.damage": 100,
+      "weapons.0.bullet.maxRange": 240,
+      "weapons.1.bullet.maxRange": 240,
+      "weapons.2.bullet.maxRange": 240,
+      "weapons.3.bullet.maxRange": 240
+    },
+    "navanax": {
+      "weapons.0.bullet.maxRange": 130,
+      "weapons.0.bullet.healPercent": 0.3,
+      "weapons.1.bullet.maxRange": 130,
+      "weapons.1.bullet.healPercent": 0.3,
+      "weapons.2.bullet.maxRange": 130,
+      "weapons.2.bullet.healPercent": 0.3,
+      "weapons.3.bullet.maxRange": 130,
+      "weapons.3.bullet.healPercent": 0.3,
+      "weapons.4.bullet.healPercent": 10,
+      "weapons.4.bullet.damage": 200,
+      "weapons.5.bullet.healPercent": 10,
+      "weapons.5.bullet.damage": 200
+    },
+    "alpha": {
+      "weapons.0.bullet.buildingDamageMultiplier": 1
+    },
+    "beta": {
+      "weapons.0.bullet.buildingDamageMultiplier": 1
+    },
+    "gamma": {
+      "weapons.0.bullet.buildingDamageMultiplier": 1
+    }
+  }
+}
