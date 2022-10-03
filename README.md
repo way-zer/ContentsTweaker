@@ -81,6 +81,9 @@ Or you can define it in single line like
 * map tag: `ContentsPatch`  
   地图所需patch列表 List of patch names  
   例(For example): `flood;patchA;xxxx`
+* C->S ContentsLoader|version
+  发送版本信息，可用来判断是否安装Mod (示例版本号: `2.0.1` or `beta-99`)
+  send version, also for checking installation. (version example: `2.0.1` or `beta-99`)
 * S->C ContentsLoader|loadPatch  
   命令客户端加载一个补丁(传递参数: 仅name)  
   command client to load a patch (param only name)

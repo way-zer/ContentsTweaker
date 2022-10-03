@@ -3,8 +3,8 @@ package cf.wayzer.contentsTweaker
 import arc.Events
 import arc.util.Log
 import mindustry.Vars
-import mindustry.game.EventType
 import mindustry.game.EventType.ResetEvent
+import mindustry.game.EventType.WorldLoadEvent
 import mindustry.gen.Call
 import mindustry.io.JsonIO
 import mindustry.mod.Mod
@@ -23,7 +23,7 @@ class ModMain : Mod() {
         Events.on(ResetEvent::class.java) { PatchHandler.recoverAll() }
         fun loadPatch(name: String) {
             val time = measureTimeMillis {
-                if (name !in patchCache) {
+                if (name !in patchCache || name == "default") {
                     val localFile = Vars.dataDirectory.child("contents-patch").run {
                         child("$name.hjson").takeIf { it.exists() }
                             ?: child("$name.json").takeIf { it.exists() }
@@ -34,11 +34,12 @@ class ModMain : Mod() {
             }
             Log.info("Load Content Patch '$name' costs $time ms")
         }
-        Events.on(EventType.WorldLoadEvent::class.java) {
+        Events.on(WorldLoadEvent::class.java) {
             loadPatch("default")
             Vars.state.rules.tags.get("ContentsPatch")?.split(";")
                 ?.forEach { loadPatch(it) }
             PatchHandler.doAfterHandle()
+            Call.serverPacketReliable("ContentsLoader|version", Vars.mods.getMod(javaClass).meta.version)
         }
         Vars.netClient.addPacketHandler("ContentsLoader|loadPatch") {
             loadPatch(it)
