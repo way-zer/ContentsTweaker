@@ -114,7 +114,7 @@ object PatchHandler {
 
     fun handle(json: JsonValue, node: Node = Node.Root) {
         //部分简化,如果value不是object可省略=运算符
-        if (!json.isObject) {
+        if (node is Node.Modifier || !json.isObject) {
             if (node !is Node.Modifier) return handle(json, node.resolve("="))
             try {
                 node.setValue(json)
