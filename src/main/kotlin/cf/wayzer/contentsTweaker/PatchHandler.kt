@@ -83,8 +83,11 @@ object PatchHandler {
         interface Modifiable<T> : WithObj<T>, Storable {
             fun setValue(value: T)
 
-            @Suppress("UNCHECKED_CAST")
-            fun setValueAny(value: Any?) = setValue(type.cast(value) as T)
+            fun setValueAny(value: Any?) {
+                @Suppress("UNCHECKED_CAST")
+                val v = (if (type.isPrimitive) value else type.cast(value)) as T
+                setValue(v)
+            }
         }
 
         fun interface Modifier {
