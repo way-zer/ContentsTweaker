@@ -14,6 +14,7 @@ import arc.scene.ui.layout.Table
 import arc.util.Align
 import cf.wayzer.contentsTweaker.PatchHandler
 import cf.wayzer.contentsTweaker.PatchHandler.withModifier
+import mindustry.Vars
 import mindustry.gen.Call
 import mindustry.ui.Styles
 
@@ -157,7 +158,7 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         else -> null
     }
 
-    object Root : UIExtNode(PatchHandler.Node.Root, "uiExt.", Core.scene.root), Storable {
+    object Root : UIExtNode(PatchHandler.Node.Root, "uiExt.", Core.scene.root ?: Element()), Storable {
         override val storeDepth: Int = Int.MAX_VALUE
         override fun doSave() {}
         override fun doRecover() {
@@ -176,6 +177,7 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         }
 
         override fun resolve(node: PatchHandler.Node, child: String): PatchHandler.Node? {
+            if (Vars.headless) return null
             if (node == PatchHandler.Node.Root && child == "uiExt") return Root
             return null
         }
