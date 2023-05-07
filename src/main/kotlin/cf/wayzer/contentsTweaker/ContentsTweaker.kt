@@ -7,6 +7,7 @@ object ContentsTweaker {
     val resolvers: MutableList<PatchHandler.Resolver> = mutableListOf(
         BlockConsumesResolver,
         ContentTypeNode.Resolver,
+        UIExtNode.Resolver,
         BaseModifier,
 
         SeqResolver,

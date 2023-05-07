@@ -52,5 +52,9 @@ class ModMain : Mod() {
             ContentsTweaker.handle(JsonIO.read(null, content))
             ContentsTweaker.afterHandle()
         }
+//        Vars.mods.scripts.scope.apply {
+//            put("loadPatch", this, ::loadPatch)
+//            put("uiExt", this, UIExtNode)
+//        }
     }
 }
