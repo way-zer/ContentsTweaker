@@ -31,7 +31,7 @@ class ContentTypeNode(val type: ContentType, key: String) : Node(key) {
         }
 
         override fun resolve(node: Node, child: String): Node? {
-            if (node != Node.Root) return null
+            if (node != Root) return null
             val type = ContentType.all.find { it.name == child } ?: return null
             return ContentTypeNode(type, node.subKey(child))
         }
