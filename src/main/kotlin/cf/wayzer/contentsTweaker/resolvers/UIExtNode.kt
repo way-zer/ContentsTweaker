@@ -51,7 +51,7 @@ import mindustry.ui.Styles
  * }
  * ```
  */
-open class UIExtNode(override val parent: PatchHandler.Node, key: String, val uiNode: Element) : PatchHandler.Node(key), PatchHandler.Node.WithObj {
+open class UIExtNode(override val parent: PatchHandler.Node, key: String, val uiNode: Element) : PatchHandler.Node(key), PatchHandler.Node.WithObj<Element> {
     private var tableCell: Cell<Element>? = null
     val children = mutableMapOf<String, UIExtNode>()
     override val obj get() = uiNode

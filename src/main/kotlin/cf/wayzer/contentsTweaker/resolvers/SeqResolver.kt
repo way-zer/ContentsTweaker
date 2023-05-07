@@ -8,26 +8,25 @@ import cf.wayzer.contentsTweaker.TypeRegistry
 import mindustry.io.JsonIO
 
 object SeqResolver : PatchHandler.Resolver {
-    class SeqItemNode(override val parent: Node, val index: Int, key: String) : Node(key), Node.Modifiable {
+    class SeqItemNode<T : Any>(override val parent: Node, val index: Int, key: String) : Node(key), Node.Modifiable<T> {
         @Suppress("UNCHECKED_CAST")
-        private val seq = (parent as WithObj).obj as Seq<Any>
-
-        override val obj: Any? = seq.get(index)
-        override val type: Class<*>?
-            get() = (parent as WithObj).elementType ?: obj?.javaClass
+        private val seq = (parent as WithObj<*>).obj as Seq<T>
+        override val obj: T get() = seq.get(index)
+        override val type: Class<*> get() = ((parent as WithObj<*>).elementType ?: obj.javaClass)
         override val storeDepth: Int get() = 0
+        private val bak = obj
         override fun doSave() {}
-        override fun doRecover() = setValue(obj)
+        override fun doRecover() = setValue(bak)
 
-        override fun setValue(value: Any?) {
+        override fun setValue(value: T) {
             seq.set(index, value)
         }
     }
 
-    class AsModifiable(override val parent: Node, override val obj: Seq<*>, val deepCopy: Boolean) : Node(parent.key), Node.Modifiable {
-        private lateinit var backup: Seq<*>
-        override val type: Class<*> = Seq::class.java
-        override val elementType: Class<*>? = (parent as WithObj).elementType ?: obj.firstOrNull()?.javaClass
+    class AsModifiable<T : Any>(override val parent: Node, override val obj: Seq<T>, val deepCopy: Boolean) : Node(parent.key), Node.Modifiable<Seq<T>> {
+        private lateinit var backup: Seq<T>
+        override val type: Class<Seq<*>> = Seq::class.java
+        override val elementType: Class<*>? = (parent as WithObj<*>).elementType ?: obj.firstOrNull()?.javaClass
 
         override val storeDepth: Int get() = if (deepCopy) Int.MAX_VALUE else 0
         override fun doSave() {
@@ -41,41 +40,38 @@ object SeqResolver : PatchHandler.Resolver {
             setValue(backup)
         }
 
-        override fun setValue(value: Any?) {
-            @Suppress("UNCHECKED_CAST")
-            val value2 = value as Seq<out Nothing>?
+        override fun setValue(value: Seq<T>) {
             obj.clear()
-            if (value2 != null)
-                obj.addAll(value2)
+            obj.addAll(value)
         }
     }
 
     override fun resolve(node: Node, child: String): Node? {
-        if (node !is Node.WithObj) return null
+        if (node !is Node.WithObj<*>) return null
         val obj = node.obj
         if (obj !is Seq<*>) return null
         //通过数字索引
-        child.toIntOrNull()?.let { return SeqItemNode(node, it, node.subKey(child)) }
+        child.toIntOrNull()?.let { return SeqItemNode<Any>(node, it, node.subKey(child)) }
         when (child) {
             "+=" -> {
-                if (node !is Node.Modifiable) error("${node.key} is Seq<*>, but not Modifiable, try use `asModifiable`")
+                if (node !is Node.Modifiable<*>) error("${node.key} is Seq<*>, but not Modifiable, try use `asModifiable`")
                 return node.withModifier(child) { json ->
                     val value = TypeRegistry.resolve<Seq<Any>>(json, elementType)
                     beforeModify()
                     @Suppress("UNCHECKED_CAST")
-                    setValue(obj.copy().addAll(value as Seq<out Nothing>))
+                    setValueAny(obj.copy().addAll(value as Seq<out Nothing>))
                 }
             }
             //不支持-运算符,容易导致索引型的解析错误或者失败
 
             "+" -> {
-                if (node !is Node.Modifiable) error("${node.key} is Seq<*>, but not Modifiable, try use `asModifiable`")
+                if (node !is Node.Modifiable<*>) error("${node.key} is Seq<*>, but not Modifiable, try use `asModifiable`")
                 return node.withModifier(child) { json ->
                     val value = TypeRegistry.resolveType(json, elementType)
                     beforeModify()
                     @Suppress("UNCHECKED_CAST")
                     val parentSeq = obj as Seq<Any>
-                    setValue(parentSeq.copy().add(value))
+                    setValueAny(parentSeq.copy().add(value))
                 }
             }
 
