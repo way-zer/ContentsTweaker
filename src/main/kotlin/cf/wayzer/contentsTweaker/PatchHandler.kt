@@ -63,16 +63,16 @@ object PatchHandler {
             return "Node(key='$key')"
         }
 
-        interface WithObj {
-            val obj: Any?
-            val type: Class<*>?
+        interface WithObj<T> {
+            val obj: T
+            val type: Class<*>
             val elementType: Class<*>? get() = null
             val keyType: Class<*>? get() = null
         }
 
         //Node with obj, not Modifiable, use as simple node
-        class ObjNode(override val parent: Node, key: String, override val obj: Any, override val type: Class<out Any> = obj.javaClass) :
-            Node(key), WithObj
+        class ObjNode<T : Any>(override val parent: Node, key: String, override val obj: T, override val type: Class<T> = obj.javaClass) :
+            Node(key), WithObj<T>
 
         interface Storable {
             val storeDepth: Int
@@ -80,22 +80,11 @@ object PatchHandler {
             fun doRecover()
         }
 
-        interface Modifiable : WithObj, Storable {
-            //            /**
-//             * 可直接修改[obj]对象.通过其他机制可保证还原
-//             * true时: [doStore0]负责拷贝对象,并保存,由[recover]负责恢复
-//             * false时: 由[Modifier]负责产生新对象并[setValue]
-//             * */
-//            val mutableObj: Boolean get() = false
-            fun setValue(value: Any?)
-//            fun doStore() {
-//                if (mutableObj) error("mutable Modifiable need impl doStore0 to backup obj")
-//            }
-//
-//            fun recover() {
-//                if (mutableObj) error("mutable Modifiable need impl recover to recover obj")
-//                setValue(obj)
-//            }
+        interface Modifiable<T> : WithObj<T>, Storable {
+            fun setValue(value: T)
+
+            @Suppress("UNCHECKED_CAST")
+            fun setValueAny(value: Any?) = setValue(type.cast(value) as T)
         }
 
         fun interface Modifier {

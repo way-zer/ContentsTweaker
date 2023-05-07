@@ -6,21 +6,25 @@ import cf.wayzer.contentsTweaker.PatchHandler.Node
 import java.lang.reflect.Field
 
 
-class ReflectNode(override val parent: Node, key: String, val field: Field) : Node(key), Node.Modifiable {
-    override val obj: Any = field.get((parent as WithObj).obj)
-    override val type: Class<out Any> get() = this.field.type
-    private val typeMeta: FieldMetadata by lazy { this.field.let(::FieldMetadata) }
+class ReflectNode<T>(override val parent: Node, key: String, val f: Field) : Node(key), Node.Modifiable<T> {
+    @Suppress("UNCHECKED_CAST")
+    override val obj: T get() = f.get((parent as WithObj<*>).obj) as T
+
+    @Suppress("UNCHECKED_CAST")
+    override val type: Class<T> get() = this.f.type as Class<T>
+    private val typeMeta: FieldMetadata by lazy { this.f.let(::FieldMetadata) }
     override val elementType: Class<*>? get() = typeMeta.elementType
     override val keyType: Class<*>? get() = typeMeta.keyType
 
     override val storeDepth: Int get() = 0
+    private val bak = obj
     override fun doSave() {}//already
     override fun doRecover() {
-        setValue(obj)
+        setValue(bak)
     }
 
-    override fun setValue(value: Any?) {
-        field.set((parent as WithObj).obj, value)
+    override fun setValue(value: T) {
+        f.set((parent as WithObj<*>).obj, value)
     }
 
     companion object Resolver : PatchHandler.Resolver {
@@ -38,11 +42,11 @@ class ReflectNode(override val parent: Node, key: String, val field: Field) : No
         }
 
         override fun resolve(node: Node, child: String): Node? {
-            if (node !is WithObj) return null
+            if (node !is WithObj<*>) return null
             val obj = node.obj ?: return null
             val field = kotlin.runCatching { getField(obj, child) }
                 .getOrNull() ?: return null
-            return ReflectNode(node, node.subKey(child), field)
+            return ReflectNode<Any>(node, node.subKey(child), field)
         }
     }
 }

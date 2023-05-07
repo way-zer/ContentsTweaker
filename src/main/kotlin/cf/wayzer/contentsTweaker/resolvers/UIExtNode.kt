@@ -14,6 +14,7 @@ import arc.scene.ui.layout.Table
 import arc.util.Align
 import cf.wayzer.contentsTweaker.PatchHandler
 import cf.wayzer.contentsTweaker.PatchHandler.withModifier
+import mindustry.Vars
 import mindustry.gen.Call
 import mindustry.ui.Styles
 
@@ -50,7 +51,7 @@ import mindustry.ui.Styles
  * }
  * ```
  */
-open class UIExtNode(override val parent: PatchHandler.Node, key: String, val uiNode: Element) : PatchHandler.Node(key), PatchHandler.Node.WithObj {
+open class UIExtNode(override val parent: PatchHandler.Node, key: String, val uiNode: Element) : PatchHandler.Node(key), PatchHandler.Node.WithObj<Element> {
     private var tableCell: Cell<Element>? = null
     val children = mutableMapOf<String, UIExtNode>()
     override val obj get() = uiNode
@@ -157,7 +158,7 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         else -> null
     }
 
-    object Root : UIExtNode(PatchHandler.Node.Root, "uiExt.", Core.scene.root), Storable {
+    object Root : UIExtNode(PatchHandler.Node.Root, "uiExt.", Core.scene.root ?: Element()), Storable {
         override val storeDepth: Int = Int.MAX_VALUE
         override fun doSave() {}
         override fun doRecover() {
@@ -167,8 +168,8 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
     }
 
     companion object Resolver : PatchHandler.Resolver {
-        val alignMap = Align::class.java.declaredFields.associate { it.name to it.getInt(null) }
-        val stylesMap = Styles::class.java.declaredFields.associate { it.name to it.get(null)!! }
+        val alignMap by lazy { Align::class.java.declaredFields.associate { it.name to it.getInt(null) } }
+        val stylesMap by lazy { Styles::class.java.declaredFields.associate { it.name to it.get(null)!! } }
         fun createUIElement(type: String): Element = when (type) {
             "Table" -> Table()
             "Label" -> Label("")
@@ -176,6 +177,7 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         }
 
         override fun resolve(node: PatchHandler.Node, child: String): PatchHandler.Node? {
+            if (Vars.headless) return null
             if (node == PatchHandler.Node.Root && child == "uiExt") return Root
             return null
         }
