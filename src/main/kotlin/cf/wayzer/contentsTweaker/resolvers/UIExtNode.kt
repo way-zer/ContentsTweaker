@@ -168,8 +168,8 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
     }
 
     companion object Resolver : PatchHandler.Resolver {
-        val alignMap = Align::class.java.declaredFields.associate { it.name to it.getInt(null) }
-        val stylesMap = Styles::class.java.declaredFields.associate { it.name to it.get(null)!! }
+        val alignMap by lazy { Align::class.java.declaredFields.associate { it.name to it.getInt(null) } }
+        val stylesMap by lazy { Styles::class.java.declaredFields.associate { it.name to it.get(null)!! } }
         fun createUIElement(type: String): Element = when (type) {
             "Table" -> Table()
             "Label" -> Label("")
