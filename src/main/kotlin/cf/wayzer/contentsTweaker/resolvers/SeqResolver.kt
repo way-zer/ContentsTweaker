@@ -15,6 +15,9 @@ object SeqResolver : PatchHandler.Resolver {
         override val obj: Any? = seq.get(index)
         override val type: Class<*>?
             get() = (parent as WithObj).elementType ?: obj?.javaClass
+        override val storeDepth: Int get() = 0
+        override fun doSave() {}
+        override fun doRecover() = setValue(obj)
 
         override fun setValue(value: Any?) {
             seq.set(index, value)
@@ -25,16 +28,16 @@ object SeqResolver : PatchHandler.Resolver {
         private lateinit var backup: Seq<*>
         override val type: Class<*> = Seq::class.java
         override val elementType: Class<*>? = (parent as WithObj).elementType ?: obj.firstOrNull()?.javaClass
-        override val mutableObj: Boolean get() = true
 
-        override fun doStore0() {
+        override val storeDepth: Int get() = if (deepCopy) Int.MAX_VALUE else 0
+        override fun doSave() {
             backup = if (deepCopy)
                 obj.map { JsonIO.copy(it) }
             else
                 obj.copy()
         }
 
-        override fun recover() {
+        override fun doRecover() {
             setValue(backup)
         }
 
@@ -58,7 +61,7 @@ object SeqResolver : PatchHandler.Resolver {
                 if (node !is Node.Modifiable) error("${node.key} is Seq<*>, but not Modifiable, try use `asModifiable`")
                 return node.withModifier(child) { json ->
                     val value = TypeRegistry.resolve<Seq<Any>>(json, elementType)
-                    if (!hasStore()) doStore()
+                    beforeModify()
                     @Suppress("UNCHECKED_CAST")
                     setValue(obj.copy().addAll(value as Seq<out Nothing>))
                 }
@@ -69,15 +72,15 @@ object SeqResolver : PatchHandler.Resolver {
                 if (node !is Node.Modifiable) error("${node.key} is Seq<*>, but not Modifiable, try use `asModifiable`")
                 return node.withModifier(child) { json ->
                     val value = TypeRegistry.resolveType(json, elementType)
-                    if (!hasStore()) doStore()
+                    beforeModify()
                     @Suppress("UNCHECKED_CAST")
                     val parentSeq = obj as Seq<Any>
                     setValue(parentSeq.copy().add(value))
                 }
             }
 
-            "asModifiable" -> return AsModifiable(node, obj, deepCopy = true)
-            "asModifiableUnsafe" -> return AsModifiable(node, obj, deepCopy = false)
+            "asModifiable" -> return AsModifiable(node, obj, deepCopy = false)
+            "asModifiableDeep" -> return AsModifiable(node, obj, deepCopy = true)
         }
         return null
     }

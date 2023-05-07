@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.8.20"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     `maven-publish`
 }
@@ -16,8 +16,11 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.Anuken.Mindustry:core:v137")
-    implementation("com.github.CraftTweaker:ZenScript:dde0ab3b5e")
+    compileOnly("com.github.TinyLake.MindustryX:core:v143.102")
+}
+
+kotlin {
+    jvmToolchain(8)
 }
 
 publishing {

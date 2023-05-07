@@ -5,7 +5,6 @@ import arc.struct.EnumSet
 import arc.struct.ObjectMap
 import arc.util.serialization.Json
 import arc.util.serialization.JsonValue
-import cf.wayzer.contentsTweaker.resolvers.MindustryExt
 import cf.wayzer.contentsTweaker.util.reflectDelegate
 import mindustry.Vars
 import mindustry.mod.ContentParser
@@ -20,15 +19,22 @@ object TypeRegistry {
         fun <T : Any> resolveType(json: JsonValue, type: Class<T>?, elementType: Class<*>? = null, keyType: Class<*>? = null): T?
     }
 
-    val resolvers = mutableListOf<Resolver>(
-        MindustryExt
-    )
+    private val resolvers = ContentsTweaker.typeResolvers
 
     fun <T : Any> resolveType(json: JsonValue, type: Class<T>?, elementType: Class<*>? = null, keyType: Class<*>? = null): T {
         @Suppress("UNCHECKED_CAST")
         when (type) {
-            EnumSet::class.java -> return newEnumSet(resolve(json, elementType)) as T
-            Prov::class.java -> return getSupply(getTypeByName(json.asString(), null)) as T
+            EnumSet::class.java -> {
+                fun <T : Enum<T>> newEnumSet(arr: Array<Enum<*>>) = EnumSet.of(*arr as Array<T>)
+                return newEnumSet(resolve(json, elementType)) as T
+            }
+
+            Prov::class.java -> {
+                val cls = getTypeByName(json.asString(), null)
+                val method = ContentParser::class.java.getDeclaredMethod("supply", Class::class.java)
+                method.isAccessible = true
+                return method.invoke(Vars.mods.parser, cls) as T
+            }
         }
         return resolvers.firstNotNullOfOrNull { it.resolveType(json, type, elementType, keyType) }
             ?: jsonParser.readValue(type, elementType, json, keyType)
@@ -38,18 +44,7 @@ object TypeRegistry {
         return resolveType(json, T::class.java, elementType, keyType)
     }
 
-    private fun <T : Enum<T>> newEnumSet(arr: Array<Enum<*>>): EnumSet<T> {
-        @Suppress("UNCHECKED_CAST")
-        return EnumSet.of(*arr as Array<T>)
-    }
-
-    private fun getSupply(cls: Class<*>): Prov<*> {
-        val method = ContentParser::class.java.getDeclaredMethod("supply", Class::class.java)
-        method.isAccessible = true
-        return method.invoke(Vars.mods.parser, cls) as Prov<*>
-    }
-
-    private fun getTypeByName(name: String, def: Class<*>?): Class<*> {
+    fun getTypeByName(name: String, def: Class<*>?): Class<*> {
         val method = ContentParser::class.java.getDeclaredMethod("resolve", String::class.java, Class::class.java)
         method.isAccessible = true
         return method.invoke(Vars.mods.parser, name, def) as Class<*>
