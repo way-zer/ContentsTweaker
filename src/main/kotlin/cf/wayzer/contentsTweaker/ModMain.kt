@@ -4,7 +4,7 @@ import arc.Events
 import arc.util.Log
 import mindustry.Vars
 import mindustry.game.EventType.ResetEvent
-import mindustry.game.EventType.WorldLoadEvent
+import mindustry.game.EventType.WorldLoadBeginEvent
 import mindustry.gen.Call
 import mindustry.io.JsonIO
 import mindustry.mod.Mod
@@ -19,8 +19,8 @@ class ModMain : Mod() {
 
     val patchCache = mutableMapOf<String, String>()
     fun registerContentsParser() {
-        PatchHandler//ensure init
-        Events.on(ResetEvent::class.java) { PatchHandler.recoverAll() }
+        ContentsTweaker//ensure all resolver init
+        Events.on(ResetEvent::class.java) { ContentsTweaker.recoverAll() }
         fun loadPatch(name: String) {
             val time = measureTimeMillis {
                 if (name !in patchCache || name == "default") {
@@ -30,27 +30,27 @@ class ModMain : Mod() {
                     } ?: return Call.serverPacketReliable("ContentsLoader|requestPatch", name)
                     patchCache[name] = localFile.readString()
                 }
-                PatchHandler.handle(JsonIO.read(null, patchCache[name]!!))
+                ContentsTweaker.handle(JsonIO.read(null, patchCache[name]!!))
             }
             Log.info("Load Content Patch '$name' costs $time ms")
         }
-        Events.on(WorldLoadEvent::class.java) {
+        Events.on(WorldLoadBeginEvent::class.java) {
             loadPatch("default")
             Vars.state.rules.tags.get("ContentsPatch")?.split(";")
                 ?.forEach { loadPatch(it) }
-            PatchHandler.doAfterHandle()
+            ContentsTweaker.afterHandle()
             Call.serverPacketReliable("ContentsLoader|version", Vars.mods.getMod(javaClass).meta.version)
         }
         Vars.netClient.addPacketHandler("ContentsLoader|loadPatch") {
             loadPatch(it)
-            PatchHandler.doAfterHandle()
+            ContentsTweaker.afterHandle()
         }
         Vars.netClient.addPacketHandler("ContentsLoader|newPatch") {
             val (name, content) = it.split('\n', limit = 2)
             if (!name.startsWith("$"))//$patch see as variable, only cache in server
                 patchCache[name] = content
-            PatchHandler.handle(JsonIO.read(null, content))
-            PatchHandler.doAfterHandle()
+            ContentsTweaker.handle(JsonIO.read(null, content))
+            ContentsTweaker.afterHandle()
         }
     }
 }

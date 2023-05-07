@@ -11,7 +11,7 @@ object BaseModifier : PatchHandler.Resolver {
         if (node !is Node.Modifiable) error("${node.key} is not Modifiable, can't assign")
         return node.withModifier(child) { json ->
             val value = TypeRegistry.resolveType(json, type, elementType, keyType)
-            if (!hasStore()) doStore()
+            beforeModify()
             setValue(value)
         }
     }

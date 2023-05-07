@@ -10,16 +10,8 @@ object PatchHandler {
         fun resolve(node: Node, child: String): Node?
     }
 
-    val resolvers = mutableListOf(
-        MindustryExt,
-        ContentResolver,
-        BaseModifier,
-
-        SeqResolver,
-        MapResolver,
-        ReflectResolver,
-    )
-    val store = mutableMapOf<String, Node>()
+    private val resolvers = ContentsTweaker.resolvers
+    private val storeMap = mutableMapOf<String, Node>()
 
     /**parser处理完毕后,进行收尾操作*/
     private val afterHandler = mutableMapOf<String, () -> Unit>()
@@ -27,20 +19,10 @@ object PatchHandler {
     /**
      * Node储存规则
      * * 仅支持[recover]的能够储存到store中
-     * * [parent]已经[hasStore],子[Node]无需[doStore]
      * * 全部恢复时,优先恢复[parent] (impl: 按[key]排序即可
      */
     abstract class Node(val key: String) {
         abstract val parent: Node
-
-        open fun hasStore(): Boolean = parent.hasStore() || (key in store)
-
-        open fun doStore() {
-            if (this is Modifiable) {
-                doStore0()
-                store.putIfAbsent(key, this)
-            } else parent.doStore()
-        }
 
         //self First, super as fallback
         @Throws(Throwable::class)
@@ -51,6 +33,31 @@ object PatchHandler {
 
         fun subKey(child: String) = "$key$child." // end with .
 
+
+        fun stored(depth: Int = 0): Boolean {
+            if (this == Root) return false
+            return parent.stored(depth + 1)
+                    || (this is Storable && key in storeMap && (storeDepth >= depth))
+        }
+
+
+        fun beforeModify(depth: Int = 0) {
+            if (!stored(depth)) store(depth)
+            onModify()
+        }
+
+        private fun store(depth: Int = 0) {
+            if (this == Root) error("Can't store")
+            if (this is Storable && storeDepth >= depth) {
+                doSave()
+                storeMap[key] = this
+            } else parent.store(depth + 1)
+        }
+
+        /** for register afterHandler */
+        protected open fun onModify() {
+            parent.onModify()
+        }
 
         override fun toString(): String {
             return "Node(key='$key')"
@@ -67,29 +74,34 @@ object PatchHandler {
         class ObjNode(override val parent: Node, key: String, override val obj: Any, override val type: Class<out Any> = obj.javaClass) :
             Node(key), WithObj
 
-        interface Modifiable : WithObj {
-            /**
-             * 可直接修改[obj]对象.通过其他机制可保证还原
-             * true时: [doStore0]负责拷贝对象,并保存,由[recover]负责恢复
-             * false时: 由[Modifier]负责产生新对象并[setValue]
-             * */
-            val mutableObj: Boolean get() = false
+        interface Storable {
+            val storeDepth: Int
+            fun doSave()
+            fun doRecover()
+        }
+
+        interface Modifiable : WithObj, Storable {
+            //            /**
+//             * 可直接修改[obj]对象.通过其他机制可保证还原
+//             * true时: [doStore0]负责拷贝对象,并保存,由[recover]负责恢复
+//             * false时: 由[Modifier]负责产生新对象并[setValue]
+//             * */
+//            val mutableObj: Boolean get() = false
             fun setValue(value: Any?)
-
-            fun doStore0() {
-                if (mutableObj) error("mutable Modifiable need impl doStore0 to backup obj")
-            }
-
-            fun recover() {
-                if (mutableObj) error("mutable Modifiable need impl recover to recover obj")
-                setValue(obj)
-            }
+//            fun doStore() {
+//                if (mutableObj) error("mutable Modifiable need impl doStore0 to backup obj")
+//            }
+//
+//            fun recover() {
+//                if (mutableObj) error("mutable Modifiable need impl recover to recover obj")
+//                setValue(obj)
+//            }
         }
 
         fun interface Modifier {
             /**
              * 1. 判断状态(parent), 根据[Modifiable.type],[Modifiable.elementType],[Modifiable.keyType]解析[json]
-             * 2. 然后判断[hasStore],并调用[doStore]
+             * 2. 然后调用[beforeModify]
              * 3. 调用[Modifiable.setValue]
              */
             @Throws(Throwable::class)
@@ -100,8 +112,7 @@ object PatchHandler {
 
         object Root : Node("") {
             override val parent: Node get() = error("Root no parent")
-            override fun hasStore() = false
-            override fun doStore() = error("No Node support store")
+            override fun onModify() = Unit
             override fun toString() = "Node(ROOT)"
         }
     }
@@ -114,8 +125,9 @@ object PatchHandler {
 
     fun handle(json: JsonValue, node: Node = Node.Root) {
         //部分简化,如果value不是object可省略=运算符
-        if (node is Node.Modifier || !json.isObject) {
-            if (node !is Node.Modifier) return handle(json, node.resolve("="))
+        if (node !is Node.Modifier && !json.isObject)
+            return handle(json, node.resolve("="))
+        if (node is Node.Modifier) {
             try {
                 node.setValue(json)
             } catch (e: Throwable) {
@@ -146,10 +158,12 @@ object PatchHandler {
     }
 
     fun recoverAll() {
-        store.values.sortedBy { it.key }.forEach {
-            (it as Node.Modifiable).recover()
+        storeMap.values.sortedBy { it.key }.forEach {
+            it.beforeModify()
+            (it as Node.Storable).doRecover()
         }
-        store.clear()
+        doAfterHandle()
+        storeMap.clear()
     }
 
 
