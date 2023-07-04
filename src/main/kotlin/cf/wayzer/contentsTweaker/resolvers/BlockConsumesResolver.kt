@@ -13,10 +13,14 @@ object BlockConsumesResolver : PatchHandler.Resolver, TypeRegistry.Resolver {
     override fun resolve(node: Node, child: String): Node? {
         if (node !is Node.Modifiable<*> || !Array<Consume>::class.java.isAssignableFrom(node.type))
             return null
+        @Suppress("UNCHECKED_CAST")
+        node as Node.Modifiable<Array<Consume>>
+
         val block = ((node.parent as Node.WithObj<*>).obj as? Block) ?: return null
         fun modifier(body: Array<Consume>.(JsonValue) -> Array<Consume>) = node.withModifier(child) { v ->
-            beforeModify()
-            PatchHandler.registerAfterHandler(key) {
+            val new = obj.body(v)
+            saveValue()
+            PatchHandler.registerAfterHandler(id) {
                 block.apply {
                     consPower = consumers.filterIsInstance<ConsumePower>().firstOrNull()
                     optionalConsumers = consumers.filter { it.optional && !it.ignore() }.toTypedArray()
@@ -29,8 +33,7 @@ object BlockConsumesResolver : PatchHandler.Resolver, TypeRegistry.Resolver {
                     setBars()
                 }
             }
-            @Suppress("UNCHECKED_CAST")
-            setValueAny((obj as Array<Consume>).body(v))
+            setValue(new)
         }
         return when (child) {
             "clearItems" -> modifier { filterNot { it is ConsumeItems || it is ConsumeItemFilter }.toTypedArray() }

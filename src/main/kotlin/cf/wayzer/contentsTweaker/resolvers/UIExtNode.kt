@@ -13,6 +13,7 @@ import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
 import arc.util.Align
 import cf.wayzer.contentsTweaker.PatchHandler
+import cf.wayzer.contentsTweaker.PatchHandler.registryResetHandler
 import cf.wayzer.contentsTweaker.PatchHandler.withModifier
 import mindustry.Vars
 import mindustry.gen.Call
@@ -51,27 +52,27 @@ import mindustry.ui.Styles
  * }
  * ```
  */
-open class UIExtNode(override val parent: PatchHandler.Node, key: String, val uiNode: Element) : PatchHandler.Node(key), PatchHandler.Node.WithObj<Element> {
+open class UIExtNode<T : Element>(override val parent: PatchHandler.Node, override val key: String, final override val obj: T) : PatchHandler.Node.WithObj<T>() {
+    override val externalObject: Boolean get() = true
+    override val type: Class<out T> = obj::class.java
+
     private var tableCell: Cell<Element>? = null
-    val children = mutableMapOf<String, UIExtNode>()
-    override val obj get() = uiNode
-    override val type: Class<*> = uiNode::class.java
 
     override fun resolve(child: String): PatchHandler.Node {
         resolveSpecialChild(child)?.let { return it }
         if (child.startsWith("#"))
-            return children[child] ?: error("child $child not found in $key")
+            return childrenNode[child] as UIExtNode<*>? ?: error("child $child not found in $key")
         if (child.startsWith("+")) {
             val idStart = child.indexOf('#')
             if (idStart < 0) error("Must provide element id")
             val id = child.substring(idStart)
-            return children.getOrPut(id) {
+            return childrenNode.getOrPut(id) {
                 val type = child.substring(1, idStart)
                 val element = createUIElement(type)
-                val node = UIExtNode(this, subKey(id), element)
-                when (uiNode) {
-                    is Table -> node.tableCell = uiNode.add(element)
-                    is Group -> uiNode.addChild(element)
+                val node = UIExtNode(this, id, element)
+                when (obj) {
+                    is Table -> node.tableCell = obj.add(element)
+                    is Group -> obj.addChild(element)
                     else -> error("Only Group can add child element")
                 }
                 node
@@ -79,8 +80,8 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         }
         if (child == "-") return withModifier("-") {
             val id = it.asString()
-            beforeModify()
-            children.remove(id)?.uiNode?.remove()
+            check(id.startsWith('#')) { "Must provide element id" }
+            (childrenNode.remove(id) as UIExtNode<*>?)?.obj?.remove()
         }
         return super.resolve(child)
     }
@@ -88,9 +89,8 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
     private fun resolveSpecialChild(child: String): PatchHandler.Node? = when (child) {
         "align" -> withModifier("align") {
             val v = if (it.isNumber) it.asInt() else alignMap[it.asString()] ?: error("invalid align: $it")
-            beforeModify()
-            when (uiNode) {
-                is Table -> uiNode.align(v)
+            when (obj) {
+                is Table -> obj.align(v)
                 else -> error("TODO: only support Table align")
             }
         }
@@ -98,9 +98,8 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         "margin" -> withModifier("margin") { json ->
             val v = if (json.isNumber) json.asFloat().let { v -> FloatArray(4) { v } }
             else json.asFloatArray()?.takeIf { it.size == 4 } ?: error("invalid margin: $json")
-            beforeModify()
-            when (uiNode) {
-                is Table -> uiNode.margin(v[0], v[1], v[2], v[3])
+            when (obj) {
+                is Table -> obj.margin(v[0], v[1], v[2], v[3])
                 else -> error("TODO: only support Table margin")
             }
         }
@@ -108,42 +107,39 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
         "pad" -> withModifier("pad") { json ->
             val v = if (json.isNumber) json.asFloat().let { v -> FloatArray(4) { v } }
             else json.asFloatArray()?.takeIf { it.size == 4 } ?: error("invalid pad: $json")
-            beforeModify()
             (tableCell ?: error("TODO: only support Cell pad"))
                 .pad(v[0], v[1], v[2], v[3])
         }
 
         "text" -> withModifier("text") { json ->
             val v = json.asString()
-            beforeModify()
-            when (uiNode) {
-                is Label -> uiNode.setText(v)
-                is TextButton -> uiNode.setText(v)
+            when (obj) {
+                is Label -> obj.setText(v)
+                is TextButton -> obj.setText(v)
                 else -> error("TODO: only support Label text")
             }
         }
 
         "style" -> withModifier("style") {
-            beforeModify()
-            when (uiNode) {
+            when (obj) {
                 is Label -> {
                     val v = stylesMap[it.asString()] as? LabelStyle ?: error("invalid style: $it")
-                    uiNode.style = v
+                    obj.style = v
                 }
 
                 is Button -> {
                     val v = stylesMap[it.asString()] as? Button.ButtonStyle ?: error("invalid style: $it")
-                    uiNode.style = v
+                    obj.style = v
                 }
 
                 is ScrollPane -> {
                     val v = stylesMap[it.asString()] as? ScrollPane.ScrollPaneStyle ?: error("invalid style: $it")
-                    uiNode.style = v
+                    obj.style = v
                 }
 
                 is Table -> {
                     val v = stylesMap[it.asString()] as? Drawable ?: error("invalid style: $it")
-                    uiNode.background = v
+                    obj.background = v
                 }
 
                 else -> error("TODO: style only support Table,Label,Button,ScrollPane")
@@ -152,18 +148,22 @@ open class UIExtNode(override val parent: PatchHandler.Node, key: String, val ui
 
         "onClick" -> withModifier("onClick") {
             val message = it.asString()
-            uiNode.tapped { Call.sendChatMessage(message) }
+            obj.tapped { Call.sendChatMessage(message) }
         }
 
         else -> null
     }
 
-    object Root : UIExtNode(PatchHandler.Node.Root, "uiExt.", Core.scene.root ?: Element()), Storable {
-        override val storeDepth: Int = Int.MAX_VALUE
-        override fun doSave() {}
-        override fun doRecover() {
-            children.values.toList().forEach { it.uiNode.remove() }
-            children.clear()
+    object Root : UIExtNode<Element>(PatchHandler.Node.Root, "uiExt", Core.scene.root ?: Element()) {
+        override fun afterModify(modifier: Modifier) {
+            registryResetHandler(this, "reset") {
+                fun() {
+                    childrenNode.values.forEach {
+                        if (it is UIExtNode<*>) it.obj.remove()
+                    }
+                    childrenNode.clear()
+                }
+            }
         }
     }
 

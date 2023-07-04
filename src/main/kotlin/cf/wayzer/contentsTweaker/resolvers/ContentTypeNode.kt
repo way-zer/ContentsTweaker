@@ -9,7 +9,7 @@ import mindustry.ctype.Content
 import mindustry.ctype.ContentType
 import mindustry.entities.bullet.BulletType
 
-class ContentTypeNode(val type: ContentType, key: String) : Node(key) {
+class ContentTypeNode(val type: ContentType, override val key: String) : Node() {
     override val parent = Root
     override fun resolve(child: String): Node {
         val normalizedId = Strings.camelToKebab(child)
@@ -20,7 +20,7 @@ class ContentTypeNode(val type: ContentType, key: String) : Node(key) {
             else -> Vars.content.getByName(type, normalizedId)
         } ?: error("Fail to find $type: $normalizedId($child)")
 
-        return ObjNode(this, subKey(normalizedId), content)
+        return ObjNode(this, normalizedId, content)
     }
 
     companion object Resolver : PatchHandler.Resolver {
@@ -33,7 +33,7 @@ class ContentTypeNode(val type: ContentType, key: String) : Node(key) {
         override fun resolve(node: Node, child: String): Node? {
             if (node != Root) return null
             val type = ContentType.all.find { it.name == child } ?: return null
-            return ContentTypeNode(type, node.subKey(child))
+            return ContentTypeNode(type, child)
         }
     }
 }

@@ -3,12 +3,13 @@ package cf.wayzer.contentsTweaker.resolvers
 import arc.util.serialization.Json.FieldMetadata
 import cf.wayzer.contentsTweaker.PatchHandler
 import cf.wayzer.contentsTweaker.PatchHandler.Node
+import cf.wayzer.contentsTweaker.PatchHandler.registryResetHandler
 import java.lang.reflect.Field
 
 
-class ReflectNode<T>(override val parent: Node, key: String, val f: Field) : Node(key), Node.Modifiable<T> {
+class ReflectNode<T>(override val parent: WithObj<Any>, override val key: String, val f: Field) : Node.Modifiable<T>() {
     @Suppress("UNCHECKED_CAST")
-    override val obj: T get() = f.get((parent as WithObj<*>).obj) as T
+    override val obj: T get() = f.get(parent.obj) as T
 
     @Suppress("UNCHECKED_CAST")
     override val type: Class<T> get() = this.f.type as Class<T>
@@ -16,15 +17,19 @@ class ReflectNode<T>(override val parent: Node, key: String, val f: Field) : Nod
     override val elementType: Class<*>? get() = typeMeta.elementType
     override val keyType: Class<*>? get() = typeMeta.keyType
 
-    override val storeDepth: Int get() = 0
-    private val bak = obj
-    override fun doSave() {}//already
-    override fun doRecover() {
-        setValue(bak)
+    private val originV = obj
+    override val externalObject: Boolean get() = obj !== originV
+    override fun saveValue0() {
+        registryResetHandler(parent.obj, f) { obj ->
+            fun() {
+                f.set(obj, originV)
+            }
+        }
     }
 
+
     override fun setValue(value: T) {
-        f.set((parent as WithObj<*>).obj, value)
+        f.set(parent.obj, value)
     }
 
     companion object Resolver : PatchHandler.Resolver {
@@ -44,9 +49,12 @@ class ReflectNode<T>(override val parent: Node, key: String, val f: Field) : Nod
         override fun resolve(node: Node, child: String): Node? {
             if (node !is WithObj<*>) return null
             val obj = node.obj ?: return null
+            @Suppress("UNCHECKED_CAST")
+            node as WithObj<Any>
+
             val field = kotlin.runCatching { getField(obj, child) }
                 .getOrNull() ?: return null
-            return ReflectNode<Any>(node, node.subKey(child), field)
+            return ReflectNode<Any>(node, child, field)
         }
     }
 }

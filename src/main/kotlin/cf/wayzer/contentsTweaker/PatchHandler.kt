@@ -11,107 +11,124 @@ object PatchHandler {
     }
 
     private val resolvers = ContentsTweaker.resolvers
-    private val storeMap = mutableMapOf<String, Node>()
 
-    /**parser处理完毕后,进行收尾操作*/
-    private val afterHandler = mutableMapOf<String, () -> Unit>()
+    val resetHandler = mutableMapOf<Pair<Any, Any?>, () -> Unit>()// obj,field -> recover
+    inline fun <Obj : Any> registryResetHandler(obj: Obj, field: Any?, block: (Obj) -> (() -> Unit)) {
+        if ((obj to field) in resetHandler) return
+        resetHandler[obj to field] = block(obj)
+    }
+
+    val afterHandler = mutableMapOf<Any, () -> Unit>()// key -> callback
+    inline fun registerAfterHandler(key: Any, crossinline body: () -> Unit) {
+        if (key in afterHandler) return
+        afterHandler[key] = {
+            body()
+        }
+    }
 
     /**
      * Node储存规则
      * * 仅支持[recover]的能够储存到store中
      * * 全部恢复时,优先恢复[parent] (impl: 按[key]排序即可
      */
-    abstract class Node(val key: String) {
+    abstract class Node {
+        protected open val childrenNode = LinkedHashMap<String, Node>()
         abstract val parent: Node
+
+        abstract val key: String
+        val id: String get() = idPrefix + key
+        open val idPrefix: String get() = parent.idPrefix + key + "."
 
         //self First, super as fallback
         @Throws(Throwable::class)
         open fun resolve(child: String): Node {
+            childrenNode[child]?.let { return it }
             return resolvers.firstNotNullOfOrNull { it.resolve(this, child) }
-                ?: error("Can't resolve child node: ${subKey(child)}")
-        }
-
-        fun subKey(child: String) = "$key$child." // end with .
-
-
-        fun stored(depth: Int = 0): Boolean {
-            if (this == Root) return false
-            return parent.stored(depth + 1)
-                    || (this is Storable && key in storeMap && (storeDepth >= depth))
-        }
-
-
-        fun beforeModify(depth: Int = 0) {
-            if (!stored(depth)) store(depth)
-            onModify()
-        }
-
-        private fun store(depth: Int = 0) {
-            if (this == Root) error("Can't store")
-            if (this is Storable && storeDepth >= depth) {
-                doSave()
-                storeMap[key] = this
-            } else parent.store(depth + 1)
+                ?.also { childrenNode[child] = it }
+                ?: error("Can't resolve child node: $id")
         }
 
         /** for register afterHandler */
-        protected open fun onModify() {
-            parent.onModify()
+        protected open fun afterModify(modifier: Modifier) {
+            parent.afterModify(modifier)
         }
 
         override fun toString(): String {
-            return "Node(key='$key')"
+            return "Node(id='$id')"
         }
 
-        interface WithObj<T> {
-            val obj: T
-            val type: Class<*>
-            val elementType: Class<*>? get() = null
-            val keyType: Class<*>? get() = null
+        abstract class WithObj<T> : Node() {
+            open val externalObject: Boolean = false
+            abstract val obj: T
+            abstract val type: Class<out T>
+            open val elementType: Class<*>? get() = null // List.T or Map.V
+            open val keyType: Class<*>? get() = null // Map.K
         }
 
-        //Node with obj, not Modifiable, use as simple node
-        class ObjNode<T : Any>(override val parent: Node, key: String, override val obj: T, override val type: Class<T> = obj.javaClass) :
-            Node(key), WithObj<T>
+        class ObjNode<T : Any>(
+            override val parent: Node, override val key: String, override val obj: T,
+            override val type: Class<out T> = obj.javaClass,
+            override val externalObject: Boolean = false
+        ) : WithObj<T>()
 
-        interface Storable {
-            val storeDepth: Int
-            fun doSave()
-            fun doRecover()
-        }
+        abstract class Modifiable<T> : WithObj<T>() {
+            fun saveValue() {
+                //don't save for external object
+                var node: Node = parent
+                while (node != Root) {
+                    if (node is WithObj<*> && node.externalObject) return
+                    node = node.parent
+                }
+                saveValue0()
+            }
 
-        interface Modifiable<T> : WithObj<T>, Storable {
-            fun setValue(value: T)
-
+            protected abstract fun saveValue0()
+            abstract fun setValue(value: T)
             fun setValueAny(value: Any?) {
                 @Suppress("UNCHECKED_CAST")
                 val v = (if (type.isPrimitive) value else type.cast(value)) as T
                 setValue(v)
             }
+
+            override fun resolve(child: String): Node {
+                if (child == "=") {
+                    return withModifier(child) { json ->
+                        val value = TypeRegistry.resolveType(json, type, elementType, keyType)
+                        setValueAny(value)
+                    }
+                }
+                return super.resolve(child)
+            }
         }
 
-        fun interface Modifier {
+        abstract class Modifier : Node() {
             /**
              * 1. 判断状态(parent), 根据[Modifiable.type],[Modifiable.elementType],[Modifiable.keyType]解析[json]
-             * 2. 然后调用[beforeModify]
-             * 3. 调用[Modifiable.setValue]
+             * 2. 然后调用[Modifiable.saveValue]
+             * 3. 调用[Modifiable.setValue] (depth=0) 或者修改[WithObj.obj]属性(depth=1)
+             * 4. 然后调用[afterModify]
              */
             @Throws(Throwable::class)
-            fun setValue(json: JsonValue)
+            abstract fun setValue(json: JsonValue)
         }
 
-        abstract class ModifierNode(override val parent: Node, key: String) : Node(key), Modifier
-
-        object Root : Node("") {
+        object Root : Node() {
+            override val key: String = "ROOT"
             override val parent: Node get() = error("Root no parent")
-            override fun onModify() = Unit
+            override val idPrefix: String = ""
+
             override fun toString() = "Node(ROOT)"
         }
     }
 
-    fun <T : Node> T.withModifier(type: String, impl: T.(json: JsonValue) -> Unit): Node.ModifierNode {
-        return object : Node.ModifierNode(this, subKey(type)) {
-            override fun setValue(json: JsonValue) = this@withModifier.impl(json)
+    fun <T : Node> T.withModifier(type: String, block: T.(json: JsonValue) -> Unit): Node.Modifier {
+        return object : Node.Modifier() {
+            override val parent: Node = this
+            override val key: String = type
+            override fun setValue(json: JsonValue) {
+                block(json)
+                afterModify(this)
+            }
         }
     }
 
@@ -140,22 +157,15 @@ object PatchHandler {
         }
     }
 
-    fun registerAfterHandler(key: String, body: () -> Unit) {
-        afterHandler.putIfAbsent(key, body)
-    }
-
     fun doAfterHandle() {
         afterHandler.values.forEach { it.invoke() }
         afterHandler.clear()
     }
 
     fun recoverAll() {
-        storeMap.values.sortedBy { it.key }.forEach {
-            it.beforeModify()
-            (it as Node.Storable).doRecover()
-        }
+        resetHandler.values.forEach { it() }
+        resetHandler.clear()
         doAfterHandle()
-        storeMap.clear()
     }
 
 

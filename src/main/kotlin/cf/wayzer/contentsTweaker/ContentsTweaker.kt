@@ -8,7 +8,6 @@ object ContentsTweaker {
         BlockConsumesResolver,
         ContentTypeNode.Resolver,
         UIExtNode.Resolver,
-        BaseModifier,
 
         SeqResolver,
         ObjectMapItemNode.Resolver,
