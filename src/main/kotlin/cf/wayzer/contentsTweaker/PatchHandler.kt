@@ -116,14 +116,14 @@ object PatchHandler {
             override val key: String = "ROOT"
             override val parent: Node get() = error("Root no parent")
             override val idPrefix: String = ""
-
+            override fun afterModify(modifier: Modifier) = Unit
             override fun toString() = "Node(ROOT)"
         }
     }
 
     fun <T : Node> T.withModifier(type: String, block: T.(json: JsonValue) -> Unit): Node.Modifier {
         return object : Node.Modifier() {
-            override val parent: Node = this
+            override val parent: Node = this@withModifier
             override val key: String = type
             override fun setValue(json: JsonValue) {
                 block(json)
