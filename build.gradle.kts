@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cf.wayzer"
-version = System.getenv().getOrDefault("VERSION", "2.0-SNAPSHOT")
+version = System.getenv().getOrDefault("VERSION", "3.0-SNAPSHOT")
 
 repositories {
     mavenCentral()

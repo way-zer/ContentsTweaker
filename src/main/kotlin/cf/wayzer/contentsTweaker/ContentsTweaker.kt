@@ -4,25 +4,29 @@ import arc.util.serialization.JsonValue
 import cf.wayzer.contentsTweaker.resolvers.*
 
 object ContentsTweaker {
-    val resolvers: MutableList<PatchHandler.Resolver> = mutableListOf(
-        BlockConsumesResolver,
-        ContentTypeNode.Resolver,
-        UIExtNode.Resolver,
+    fun interface NodeCollector {
+        fun collectChild(node: CTNode)
+    }
 
+    val resolvers: MutableList<NodeCollector> = mutableListOf(
+        ReflectResolver,
         SeqResolver,
-        ObjectMapItemNode.Resolver,
-        ReflectNode.Resolver,
+        ObjectMapResolver,
+
+        MindustryContentsResolver,
+        BlockConsumesResolver,
+        UIExtResolver,
     )
     val typeResolvers = mutableListOf<TypeRegistry.Resolver>(
         BlockConsumesResolver
     )
 
-    fun handle(json: JsonValue) = PatchHandler.handle(json)
+    fun handle(json: JsonValue) = CTNode.PatchHandler.handle(json)
     fun afterHandle() {
-        PatchHandler.doAfterHandle()
+        CTNode.PatchHandler.doAfterHandle()
     }
 
     fun recoverAll() {
-        PatchHandler.recoverAll()
+        CTNode.PatchHandler.recoverAll()
     }
 }
