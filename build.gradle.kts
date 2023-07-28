@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.TinyLake.MindustryX:core:v143.102")
+    compileOnly("com.github.TinyLake.MindustryX_tmp:core:6f7e4c6140")
 }
 
 kotlin {
