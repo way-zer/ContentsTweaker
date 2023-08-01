@@ -97,6 +97,7 @@ class CTNode : ExtendableClass<CTExtInfo>() {
 
     object PatchHandler {
         val resetHandlers = mutableSetOf<Resettable>()
+        private val resetAfterHandlers = mutableSetOf<AfterHandler>()
 
         val handleStack = mutableListOf<CTNode>()
         val afterHandlers = mutableSetOf<AfterHandler>()
@@ -109,6 +110,7 @@ class CTNode : ExtendableClass<CTExtInfo>() {
         }
 
         fun doAfterHandle() {
+            resetAfterHandlers.addAll(afterHandlers)
             afterHandlers.forEach { it.handle() }
             afterHandlers.clear()
         }
@@ -116,7 +118,11 @@ class CTNode : ExtendableClass<CTExtInfo>() {
         fun recoverAll() {
             resetHandlers.forEach { it.reset() }
             resetHandlers.clear()
+
             doAfterHandle()
+            resetAfterHandlers.forEach { it.handle() }
+            resetAfterHandlers.clear()
+
             Root.children.clear()
             Root.collected = false
         }
