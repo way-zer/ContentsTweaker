@@ -15,7 +15,7 @@ value class CTNodeTypeChecked<T>(val node: CTNode) {
 }
 
 inline fun <reified T> CTNode.checkObjInfoOrNull(): CTNodeTypeChecked<T>? {
-    getObjInfo<T>() ?: return null
+    getObjInfo<T>()?.obj ?: return null
     return CTNodeTypeChecked(this)
 }
 

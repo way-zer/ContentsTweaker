@@ -15,7 +15,8 @@ import cf.wayzer.contentsTweaker.util.ExtendableClassDSL
  * 如果一个节点是运算符节点(末端节点)，可接收JSON对象，实现[Modifier]
  * [AfterHandler]将在节点或子节点[Modifiable.setValue]后注册，批处理结束后统一调用
  * */
-class CTNode : ExtendableClass<CTExtInfo>() {
+class CTNode private constructor(val name: String, val parent: CTNode?) : ExtendableClass<CTExtInfo>() {
+    val id: String get() = if (parent == null) name else "${parent.id}.$name"
     val children = mutableMapOf<String, CTNode>()
     private var collected = false
     fun collectAll() {
@@ -36,7 +37,11 @@ class CTNode : ExtendableClass<CTExtInfo>() {
 
     @ExtendableClassDSL
     fun getOrCreate(child: String): CTNode {
-        return children.getOrPut(child) { CTNode() }
+        return children.getOrPut(child) { CTNode(child, this) }
+    }
+
+    override fun toString(): String {
+        return "CTNode(id='$id')"
     }
 
     interface CTExtInfo
@@ -53,7 +58,9 @@ class CTNode : ExtendableClass<CTExtInfo>() {
     }
 
     /** [T] must equal [ObjInfo.type]*/
-    abstract class Modifiable<T>(val info: ObjInfo<T>) : CTExtInfo, Resettable {
+    @Suppress("MemberVisibilityCanBePrivate")
+    abstract class Modifiable<T>(val node: CTNode) : CTExtInfo, Resettable {
+        val info = node.get<ObjInfo<T>>()!!
         abstract val currentValue: T
         protected abstract fun setValue0(value: T)
         fun setValue(value: T) {
@@ -90,27 +97,30 @@ class CTNode : ExtendableClass<CTExtInfo>() {
         fun handle()
     }
 
+    /** 为[ContentsTweaker.exportAll]自定义输出 */
+    fun interface ToJson : CTExtInfo {
+        fun write(jsonWriter: JsonWriter)
+    }
+
     companion object {
         private val resolvers = ContentsTweaker.resolvers
-        val Root = CTNode()
+        val Root = CTNode("ROOT", null)
     }
 
     object PatchHandler {
         val resetHandlers = mutableSetOf<Resettable>()
-        private val resetAfterHandlers = mutableSetOf<AfterHandler>()
+        private val afterHandlers = mutableSetOf<AfterHandler>()
 
-        val handleStack = mutableListOf<CTNode>()
-        val afterHandlers = mutableSetOf<AfterHandler>()
-
-        fun modified(node: Modifiable<*>) {
-            resetHandlers.add(node)
-            handleStack.forEach {
-                afterHandlers += it.getAll<AfterHandler>()
+        fun modified(modifiable: Modifiable<*>) {
+            resetHandlers.add(modifiable)
+            var node = modifiable.node
+            while (true) {
+                afterHandlers += node.getAll<AfterHandler>()
+                node = node.parent ?: break
             }
         }
 
         fun doAfterHandle() {
-            resetAfterHandlers.addAll(afterHandlers)
             afterHandlers.forEach { it.handle() }
             afterHandlers.clear()
         }
@@ -118,42 +128,34 @@ class CTNode : ExtendableClass<CTExtInfo>() {
         fun recoverAll() {
             resetHandlers.forEach { it.reset() }
             resetHandlers.clear()
-
             doAfterHandle()
-            resetAfterHandlers.forEach { it.handle() }
-            resetAfterHandlers.clear()
 
             Root.children.clear()
             Root.collected = false
         }
 
-        fun handle(json: JsonValue, node: CTNode = Root, key: String = "ROOT") {
-            handleStack.add(node)
-            try {
-                //部分简化,如果value不是object可省略=运算符
-                if (!json.isObject && node.get<Modifier>() == null)
-                    return handle(json, node.resolve("="), "$key.=")
-                node.get<Modifier>()?.let {
-                    try {
-                        it.setValue(json)
-                    } catch (e: Throwable) {
-                        Log.err("Fail to handle $key ${json.prettyPrint(JsonWriter.OutputType.minimal, 0)}:\n $e")
-                    }
-                    return
+        fun handle(json: JsonValue, node: CTNode = Root) {
+            //部分简化,如果value不是object可省略=运算符
+            if (!json.isObject && node.get<Modifier>() == null)
+                return handle(json, node.resolve("="))
+            node.get<Modifier>()?.let {
+                try {
+                    it.setValue(json)
+                } catch (e: Throwable) {
+                    Log.err("Fail to apply Modifier ${node.id}: ${json.prettyPrint(JsonWriter.OutputType.minimal, 0)}:\n $e")
                 }
+                return
+            }
 
-                for (child in json) {
-                    val names = child.name.split(".")
-                    val childNode = try {
-                        names.fold(node, CTNode::resolve)
-                    } catch (e: Throwable) {
-                        Log.err("Fail to resolve child $key->${child.name}:\n $e")
-                        continue
-                    }
-                    handle(child, childNode, "$key.${child.name}")
+            for (child in json) {
+                val names = child.name.split(".")
+                val childNode = try {
+                    names.fold(node, CTNode::resolve)
+                } catch (e: Throwable) {
+                    Log.err("Fail to resolve child ${node.id}->${child.name}:\n $e")
+                    continue
                 }
-            } finally {
-                handleStack.removeLast()
+                handle(child, childNode)
             }
         }
 

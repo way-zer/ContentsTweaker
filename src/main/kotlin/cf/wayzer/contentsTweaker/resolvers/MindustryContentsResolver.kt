@@ -1,21 +1,17 @@
 package cf.wayzer.contentsTweaker.resolvers
 
-import arc.util.Strings
-import cf.wayzer.contentsTweaker.CTNode
-import cf.wayzer.contentsTweaker.ContentsTweaker
-import cf.wayzer.contentsTweaker.getObjInfo
+import cf.wayzer.contentsTweaker.*
 import mindustry.Vars
-import mindustry.content.Bullets
+import mindustry.ctype.Content
 import mindustry.ctype.ContentType
 import mindustry.ctype.MappableContent
-import mindustry.entities.bullet.BulletType
 
 object MindustryContentsResolver : ContentsTweaker.NodeCollector {
     override fun collectChild(node: CTNode) {
         if (node == CTNode.Root)
             return node.rootAddContentTypes()
-        val type = node.getObjInfo<ContentType>()?.obj ?: return
-        node.listContents(type)
+        node.checkObjInfoOrNull<ContentType>()?.extendContents()
+        node.checkObjInfoOrNull<Content>()?.extend()
     }
 
     private fun CTNode.rootAddContentTypes() {
@@ -24,21 +20,20 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
         }
     }
 
-    private fun CTNode.listContents(type: ContentType) {
-        if (type == ContentType.bullet) {
-            bulletMap.forEach { (name, v) ->
-                getOrCreate(name) += CTNode.ObjInfo(v)
-            }
-            return
-        }
-        Vars.content.getBy<MappableContent>(type).forEach {
-            getOrCreate(it.name) += CTNode.ObjInfo(it)
+    private fun CTNodeTypeChecked<ContentType>.extendContents() {
+        val type = objInfo.obj
+        Vars.content.getBy<Content>(type).forEach {
+            val name = if (it is MappableContent) it.name else "#${it.id}"
+            node.getOrCreate(name) += CTNode.ObjInfo(it)
         }
     }
 
-    private val bulletMap by lazy {
-        Bullets::class.java.fields
-            .filter { it.type == BulletType::class.java }
-            .map { Strings.camelToKebab(it.name) to it.get(null) as BulletType }
+    private fun CTNodeTypeChecked<Content>.extend() {
+        if (node.parent?.getObjInfo<ContentType>() != null) return
+        node += CTNode.ToJson {
+            val content = objInfo.obj
+            val nameOrId = if (content is MappableContent) content.name else content.id.toString()
+            it.value("${content.contentType}#${nameOrId}")
+        }
     }
 }

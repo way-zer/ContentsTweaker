@@ -11,7 +11,7 @@ object SeqResolver : ContentsTweaker.NodeCollector {
     private fun CTNodeTypeChecked<Seq<Any>>.extend() {
         val list = objInfo.obj
         list.forEachIndexed { index, item ->
-            node.getOrCreate(index.toString()) += CTNode.ObjInfo(item)
+            node.getOrCreate("#$index") += CTNode.ObjInfo(item)
             //不支持 Modifiable，因为在对象变化后难以获取当前索引。修改某项应该使用`-`和`+`运算配合
         }
         modifier("-") { json ->

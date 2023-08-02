@@ -11,9 +11,9 @@ object ObjectMapResolver : ContentsTweaker.NodeCollector {
     private fun CTNodeTypeChecked<ObjectMap<Any, Any>>.extend() {
         val map = objInfo.obj
         map.forEach {
-            node.getOrCreate(TypeRegistry.getKeyString(it.key)).apply {
+            node.getOrCreate("#" + TypeRegistry.getKeyString(it.key)).apply {
                 +CTNode.ObjInfo(it.value)
-                +object : CTNode.Modifiable<Any?>(getObjInfo<Any?>()!!) {
+                +object : CTNode.Modifiable<Any?>(node) {
                     override val currentValue: Any get() = map[it.key]
                     override fun setValue0(value: Any?) {
                         if (value == null) map.remove(it.key)

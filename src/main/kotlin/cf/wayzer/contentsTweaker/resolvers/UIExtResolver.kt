@@ -84,7 +84,7 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
                 }
             }
             //通过PatchHandler设置子属性
-            CTNode.PatchHandler.handle(it, childNode, id)
+            CTNode.PatchHandler.handle(it, childNode)
         }
         node.getOrCreate("-") += CTNode.Modifier {
             val id = it.asString()
