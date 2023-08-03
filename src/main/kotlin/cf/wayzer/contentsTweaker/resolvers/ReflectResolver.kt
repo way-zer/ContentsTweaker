@@ -17,7 +17,7 @@ object ReflectResolver : ContentsTweaker.NodeCollector {
                 var cls = meta.field.type
                 if (cls.isAnonymousClass) cls = cls.superclass
                 +CTNode.ObjInfo<Any?>(meta.field.get(obj), cls, meta.elementType, meta.keyType)
-                +object : CTNode.Modifiable<Any?>(node) {
+                +object : CTNode.Modifiable<Any?>(this) {
                     override val currentValue: Any? get() = meta.field.get(obj)
                     override fun setValue0(value: Any?) {
                         meta.field.set(obj, value)
