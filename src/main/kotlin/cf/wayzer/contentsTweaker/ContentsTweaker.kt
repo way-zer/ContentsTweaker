@@ -19,6 +19,7 @@ object ContentsTweaker {
         SeqResolver,
         ObjectMapResolver,
 
+        BetterJsonResolver,
         MindustryContentsResolver,
         BlockConsumesResolver,
         UIExtResolver,
@@ -55,18 +56,10 @@ object ContentsTweaker {
                 v.collectAll()
                 when {
                     v.get<CTNode.ToJson>()?.write(this) != null -> {}
-                    k == "techNode" -> value("...")
                     v.getObjInfo<Any>()?.obj in visited -> value("RECURSIVE")
-                    v.get<CTNode.Modifier>() != null -> {
-                        if (k == "=") {
-                            value(node.get<CTNode.Modifiable<Any>>()?.currentValue?.let(TypeRegistry::getKeyString))
-                        } else value("CT_MODIFIER")
-                    }
-
+                    v.get<CTNode.Modifier>() != null -> value("CT_MODIFIER")
                     //只有=的简单节点，省略=
-                    v.children.keys.singleOrNull() == "=" ->
-                        value(v.get<CTNode.Modifiable<Any>>()?.currentValue?.let(TypeRegistry::getKeyString))
-
+                    v.children.keys.singleOrNull() == "=" -> v.resolve("=").get<CTNode.ToJson>()!!.write(this)
                     else -> writeNode(v)
                 }
             }

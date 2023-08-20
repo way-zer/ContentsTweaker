@@ -30,5 +30,8 @@ object SeqResolver : ContentsTweaker.NodeCollector {
             val value = TypeRegistry.resolveType(json, objInfo.type, objInfo.elementType)
             copy().apply { addAll(value) }
         }
+        node.getOrCreate("items") += CTNode.ToJson {
+            it.value("...")
+        }
     }
 }

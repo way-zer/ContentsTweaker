@@ -24,9 +24,14 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
         if (collected) return this
         collected = true
         resolvers.forEach { it.collectChild(this) }
-        get<Modifiable<Any>>()?.let { modifiable ->
-            getOrCreate("=") += Modifier { json ->
-                modifiable.setJson(json)
+        get<Modifiable<Any?>>()?.let { modifiable ->
+            getOrCreate("=").apply {
+                +Modifier { json ->
+                    modifiable.setJson(json)
+                }
+                +ToJson {
+                    it.value(modifiable.currentValue?.let(TypeRegistry::getKeyString))
+                }
             }
         }
         return this

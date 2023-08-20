@@ -32,4 +32,10 @@ abstract class ExtendableClass<Ext : Any> {
     operator fun plusAssign(ext: Ext) {
         mixins.add(ext)
     }
+
+    @ExtendableClassDSL
+    inline fun <reified T : Ext> extendOnce(ext: Ext) {
+        if (get<T>() != null) return
+        mixins.add(ext)
+    }
 }
