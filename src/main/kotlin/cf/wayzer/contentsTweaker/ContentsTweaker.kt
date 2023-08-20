@@ -15,6 +15,7 @@ object ContentsTweaker {
 
     val resolvers: MutableList<NodeCollector> = mutableListOf(
         ReflectResolver,
+        ArrayResolver,
         SeqResolver,
         ObjectMapResolver,
 
