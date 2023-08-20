@@ -1,12 +1,16 @@
 package cf.wayzer.contentsTweaker.resolvers
 
-import cf.wayzer.contentsTweaker.*
+import cf.wayzer.contentsTweaker.CTNode
+import cf.wayzer.contentsTweaker.CTNodeTypeChecked
+import cf.wayzer.contentsTweaker.ContentsTweaker
+import cf.wayzer.contentsTweaker.checkObjInfoOrNull
 import mindustry.Vars
 import mindustry.ctype.Content
 import mindustry.ctype.ContentType
 import mindustry.ctype.MappableContent
 
 object MindustryContentsResolver : ContentsTweaker.NodeCollector {
+    private val contentNodes = mutableMapOf<Content, CTNode>()
     override fun collectChild(node: CTNode) {
         if (node == CTNode.Root)
             return node.rootAddContentTypes()
@@ -15,6 +19,7 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
     }
 
     private fun CTNode.rootAddContentTypes() {
+        contentNodes.clear()
         ContentType.all.forEach {
             getOrCreate(it.name) += CTNode.ObjInfo(it, ContentType::class.java)
         }
@@ -24,12 +29,15 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
         val type = objInfo.obj
         Vars.content.getBy<Content>(type).forEach {
             val name = if (it is MappableContent) it.name else "#${it.id}"
-            node.getOrCreate(name) += CTNode.ObjInfo(it)
+            node.getOrCreate(name).apply {
+                +CTNode.ObjInfo(it)
+                contentNodes[it] = this
+            }
         }
     }
 
     private fun CTNodeTypeChecked<Content>.extend() {
-        if (node.parent?.getObjInfo<ContentType>() != null) return
+        if (contentNodes[objInfo.obj] === node) return
         node += CTNode.ToJson {
             val content = objInfo.obj
             val nameOrId = if (content is MappableContent) content.name else content.id.toString()

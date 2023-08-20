@@ -53,9 +53,9 @@ object ContentsTweaker {
                 name(k)
                 v.collectAll()
                 when {
-                    node.get<CTNode.ToJson>()?.write(this) != null -> {}
+                    v.get<CTNode.ToJson>()?.write(this) != null -> {}
                     k == "techNode" -> value("...")
-                    node.getObjInfo<Any>()?.obj in visited -> value("RECURSIVE")
+                    v.getObjInfo<Any>()?.obj in visited -> value("RECURSIVE")
                     v.get<CTNode.Modifier>() != null -> {
                         if (k == "=") {
                             value(node.get<CTNode.Modifiable<Any>>()?.currentValue?.let(TypeRegistry::getKeyString))

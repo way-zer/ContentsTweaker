@@ -17,8 +17,7 @@ import cf.wayzer.contentsTweaker.util.ExtendableClassDSL
  *
  * 所有节点，在获得实例，使用前必须调用[collectAll] ([ContentsTweaker.NodeCollector]内不需要)
  * */
-class CTNode private constructor(val name: String, val parent: CTNode?) : ExtendableClass<CTExtInfo>() {
-    val id: String get() = if (parent == null) name else "${parent.id}.$name"
+class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
     val children = mutableMapOf<String, CTNode>()
     private var collected = false
     fun collectAll(): CTNode {
@@ -34,18 +33,13 @@ class CTNode private constructor(val name: String, val parent: CTNode?) : Extend
     }
 
     fun resolve(name: String): CTNode {
-        collectAll()
         return children[name]?.collectAll() ?: error("Not found child $name")
     }
 
     /** 供[ContentsTweaker.NodeCollector]使用，解析清使用[resolve]*/
     @ExtendableClassDSL
     fun getOrCreate(child: String): CTNode {
-        return children.getOrPut(child) { CTNode(child, this) }
-    }
-
-    override fun toString(): String {
-        return "CTNode(id='$id')"
+        return children.getOrPut(child) { CTNode() }
     }
 
     interface CTExtInfo
@@ -63,8 +57,9 @@ class CTNode private constructor(val name: String, val parent: CTNode?) : Extend
 
     /** [T] must equal [ObjInfo.type]*/
     @Suppress("MemberVisibilityCanBePrivate")
-    abstract class Modifiable<T>(val node: CTNode) : CTExtInfo, Resettable {
+    abstract class Modifiable<T>(node: CTNode) : CTExtInfo, Resettable {
         val info = node.get<ObjInfo<T>>()!!
+        internal var nodeStack: List<CTNode>? = null
         abstract val currentValue: T
         protected abstract fun setValue0(value: T)
         fun setValue(value: T) {
@@ -108,20 +103,38 @@ class CTNode private constructor(val name: String, val parent: CTNode?) : Extend
 
     companion object {
         private val resolvers = ContentsTweaker.resolvers
-        val Root = CTNode("ROOT", null)
+        val Root = CTNode()
     }
 
     object PatchHandler {
+        private object NodeStack {
+            private val stack = mutableListOf<Pair<CTNode, String>>()
+            val last get() = stack.last()
+            fun getParents() = stack.map { it.first }
+            fun getId(node: CTNode? = null) {
+                stack.takeWhile { it.first !== node }.joinToString(".") { it.second }
+            }
+
+            fun resolve(node: CTNode, child: String): CTNode {
+                stack.add(node to child)
+                return node.resolve(child)
+            }
+
+            fun pop(node: CTNode) {
+                @Suppress("ControlFlowWithEmptyBody")
+                while (stack.removeLast().first !== node);
+            }
+        }
+
         val resetHandlers = mutableSetOf<Resettable>()
         private val afterHandlers = mutableSetOf<AfterHandler>()
 
         fun modified(modifiable: Modifiable<*>) {
             resetHandlers.add(modifiable)
-            var node = modifiable.node
-            while (true) {
-                afterHandlers += node.getAll<AfterHandler>()
-                node = node.parent ?: break
+            val parents = modifiable.nodeStack ?: NodeStack.getParents().also {
+                modifiable.nodeStack = it
             }
+            parents.flatMapTo(afterHandlers) { it.getAll<AfterHandler>() }
         }
 
         fun doAfterHandle() {
@@ -141,37 +154,28 @@ class CTNode private constructor(val name: String, val parent: CTNode?) : Extend
         fun handle(json: JsonValue, node: CTNode = Root) {
             //部分简化,如果value不是object可省略=运算符
             if (!json.isObject && node.get<Modifier>() == null)
-                return handle(json, node.resolve("="))
+                return handle(json, NodeStack.resolve(node, "="))
             node.get<Modifier>()?.let {
                 try {
                     it.setValue(json)
                 } catch (e: Throwable) {
-                    Log.err("Fail to apply Modifier ${node.id}: ${json.prettyPrint(JsonWriter.OutputType.minimal, 0)}:\n $e")
+                    Log.err("Fail to apply Modifier ${NodeStack.getId()}: ${json.prettyPrint(JsonWriter.OutputType.minimal, 0)}:\n $e")
                 }
                 return
             }
 
             for (child in json) {
+                NodeStack.pop(node)
                 val names = child.name.split(".")
                 val childNode = try {
-                    names.fold(node, CTNode::resolve)
+                    names.fold(node, NodeStack::resolve)
                 } catch (e: Throwable) {
-                    Log.err("Fail to resolve child ${node.id}->${child.name}:\n $e")
+                    val (errNode, errChild) = NodeStack.last
+                    Log.err("Fail to resolve child ${NodeStack.getId(errNode)}->${errChild}:\n $e")
                     continue
                 }
                 handle(child, childNode)
             }
-        }
-
-        @Deprecated("for simple", level = DeprecationLevel.ERROR)
-        fun simple() {
-            //block.copper-wall-large.health = 120
-            val node = Root
-                .resolve("block")
-                .resolve("copper-wall-large")
-                .resolve("health")
-                .resolve("=")
-            node.get<Modifier>()!!.setValue(JsonValue(120))
         }
     }
 }
