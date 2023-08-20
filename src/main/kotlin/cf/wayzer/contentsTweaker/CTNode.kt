@@ -14,13 +14,15 @@ import cf.wayzer.contentsTweaker.util.ExtendableClassDSL
  * 如果一个节点绑定属性可被重新赋值，实现[Modifiable]
  * 如果一个节点是运算符节点(末端节点)，可接收JSON对象，实现[Modifier]
  * [AfterHandler]将在节点或子节点[Modifiable.setValue]后注册，批处理结束后统一调用
+ *
+ * 所有节点，在获得实例，使用前必须调用[collectAll] ([ContentsTweaker.NodeCollector]内不需要)
  * */
 class CTNode private constructor(val name: String, val parent: CTNode?) : ExtendableClass<CTExtInfo>() {
     val id: String get() = if (parent == null) name else "${parent.id}.$name"
     val children = mutableMapOf<String, CTNode>()
     private var collected = false
-    fun collectAll() {
-        if (collected) return
+    fun collectAll(): CTNode {
+        if (collected) return this
         collected = true
         resolvers.forEach { it.collectChild(this) }
         get<Modifiable<Any>>()?.let { modifiable ->
@@ -28,13 +30,15 @@ class CTNode private constructor(val name: String, val parent: CTNode?) : Extend
                 modifiable.setJson(json)
             }
         }
+        return this
     }
 
     fun resolve(name: String): CTNode {
         collectAll()
-        return children[name] ?: error("Not found child $name")
+        return children[name]?.collectAll() ?: error("Not found child $name")
     }
 
+    /** 供[ContentsTweaker.NodeCollector]使用，解析清使用[resolve]*/
     @ExtendableClassDSL
     fun getOrCreate(child: String): CTNode {
         return children.getOrPut(child) { CTNode(child, this) }

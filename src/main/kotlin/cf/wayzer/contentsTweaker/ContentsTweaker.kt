@@ -2,7 +2,6 @@ package cf.wayzer.contentsTweaker
 
 import arc.util.Log
 import arc.util.serialization.BaseJsonWriter
-import arc.util.serialization.JsonValue
 import arc.util.serialization.JsonWriter
 import cf.wayzer.contentsTweaker.resolvers.*
 import mindustry.Vars
@@ -27,14 +26,13 @@ object ContentsTweaker {
         BlockConsumesResolver
     )
 
-    fun handle(json: JsonValue) = CTNode.PatchHandler.handle(json)
     fun afterHandle() {
         CTNode.PatchHandler.doAfterHandle()
     }
 
     fun loadPatch(name: String, content: String, doAfter: Boolean = true) {
         val time = measureTimeMillis {
-            handle(JsonIO.read(null, content))
+            CTNode.PatchHandler.handle(JsonIO.read(null, content))
             if (doAfter) afterHandle()
         }
         Log.infoTag("ContentsTweaker", "Load Content Patch '$name' costs $time ms")
@@ -49,33 +47,34 @@ object ContentsTweaker {
     fun exportAll() {
         val visited = mutableSetOf<Any>()
         fun JsonWriter.writeNode(node: CTNode): BaseJsonWriter {
-            node.collectAll()
-            node.get<CTNode.ToJson>()?.write(this)?.let { return this }
-
-            val obj = node.getObjInfo<Any>()?.obj
-            if (obj in visited) return value("RECURSIVE")
-
             this.`object`()
-            obj?.let(visited::add)
+            node.getObjInfo<Any>()?.obj?.let(visited::add)
             for ((k, v) in node.children) {
                 name(k)
+                v.collectAll()
                 when {
+                    node.get<CTNode.ToJson>()?.write(this) != null -> {}
                     k == "techNode" -> value("...")
+                    node.getObjInfo<Any>()?.obj in visited -> value("RECURSIVE")
                     v.get<CTNode.Modifier>() != null -> {
                         if (k == "=") {
                             value(node.get<CTNode.Modifiable<Any>>()?.currentValue?.let(TypeRegistry::getKeyString))
                         } else value("CT_MODIFIER")
                     }
 
+                    //只有=的简单节点，省略=
+                    v.children.keys.singleOrNull() == "=" ->
+                        value(v.get<CTNode.Modifiable<Any>>()?.currentValue?.let(TypeRegistry::getKeyString))
+
                     else -> writeNode(v)
                 }
             }
-            obj?.let(visited::remove)
+            node.getObjInfo<Any>()?.obj?.let(visited::remove)
             return this.pop()
         }
 
         val writer = JsonWriter(Vars.dataDirectory.child("CT.json").writer(false))
         writer.setOutputType(JsonWriter.OutputType.json)
-        writer.writeNode(CTNode.Root).close()
+        writer.writeNode(CTNode.Root.collectAll()).close()
     }
 }
