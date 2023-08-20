@@ -7,6 +7,7 @@ import cf.wayzer.contentsTweaker.ContentsTweaker
 import cf.wayzer.contentsTweaker.checkObjInfoOrNull
 import cf.wayzer.contentsTweaker.getObjInfo
 import mindustry.content.TechTree.TechNode
+import mindustry.graphics.g3d.PlanetGrid
 
 object BetterJsonResolver : ContentsTweaker.NodeCollector {
     override fun collectChild(node: CTNode) {
@@ -25,6 +26,12 @@ object BetterJsonResolver : ContentsTweaker.NodeCollector {
             node.getOrCreate("children").extendOnce<CTNode.ToJson>(CTNode.ToJson {
                 it.value("...")
             })
+        }
+        node.checkObjInfoOrNull<PlanetGrid>()?.apply {
+            node += CTNode.ToJson { it.value("...") }
+        }
+        node.checkObjInfoOrNull<PlanetGrid.Ptile>()?.apply {
+            node += CTNode.ToJson { it.value("...") }
         }
     }
 }

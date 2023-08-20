@@ -10,9 +10,7 @@ object ArrayResolver : ContentsTweaker.NodeCollector {
     //    private val types = mutableSetOf<Any>()
     private fun CTNodeTypeChecked<Array<Any?>>.extend() {
         objInfo.type.componentType.let {
-            if (it.isArray || it.`package`.name.run {
-                    startsWith("arc") || startsWith("mindustry.graphics.g3d")
-                }) {
+            if (it.isArray || it.`package`.name.startsWith("arc")) {
 //                if (types.add(it)) println(it)
                 return
             }
