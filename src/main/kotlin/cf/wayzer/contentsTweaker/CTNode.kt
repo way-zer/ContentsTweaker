@@ -170,16 +170,17 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
             }
 
             for (child in json) {
-                NodeStack.pop(node)
                 val names = child.name.split(".")
                 val childNode = try {
                     names.fold(node, NodeStack::resolve)
                 } catch (e: Throwable) {
                     val (errNode, errChild) = NodeStack.last
                     Log.err("Fail to resolve child ${NodeStack.getId(errNode)}->${errChild}:\n $e")
+                    NodeStack.pop(node)
                     continue
                 }
                 handle(child, childNode)
+                NodeStack.pop(node)
             }
         }
     }
