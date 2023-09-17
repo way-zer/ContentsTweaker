@@ -50,21 +50,24 @@ object ContentsTweaker {
     }
 
     fun recoverAll() {
-        if (worldReloading) return
+        if (worldInReset) return
+        worldInReset = true
         CTNode.PatchHandler.recoverAll()
+        worldInReset = false
     }
 
     private val NetClient.removed: IntSet by reflectDelegate()
-    var worldReloading = false
+    var worldInReset = false
 
     fun reloadWorld() {
+        if (worldInReset) return
         val time = measureTimeMillis {
-            worldReloading = true
+            worldInReset = true
             val stream = ByteArrayOutputStream()
             NetworkIO.writeWorld(Vars.player, stream)
             NetworkIO.loadWorld(ByteArrayInputStream(stream.toByteArray()))
             Vars.netClient.removed.clear()
-            worldReloading = false
+            worldInReset = false
         }
         Log.infoTag("ContentsTweaker", "Reload world costs $time ms")
     }
