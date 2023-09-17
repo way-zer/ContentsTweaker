@@ -43,6 +43,8 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
                 +CTNode.AfterHandler {
                     if (it is UnlockableContent)
                         it.stats = Stats()
+                    if (it is Block)
+                        it.barMap.clear()
                     it.init()
                 }
             }
