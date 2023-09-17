@@ -1,17 +1,16 @@
 package cf.wayzer.contentsTweaker
 
-import arc.struct.IntSet
 import arc.util.Log
 import arc.util.serialization.BaseJsonWriter
 import arc.util.serialization.JsonWriter
 import cf.wayzer.contentsTweaker.resolvers.*
-import cf.wayzer.contentsTweaker.util.reflectDelegate
 import mindustry.Vars
-import mindustry.core.NetClient
 import mindustry.io.JsonIO
-import mindustry.net.NetworkIO
+import mindustry.io.SaveIO
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import kotlin.system.measureTimeMillis
 
 object ContentsTweaker {
@@ -56,7 +55,6 @@ object ContentsTweaker {
         worldInReset = false
     }
 
-    private val NetClient.removed: IntSet by reflectDelegate()
     var worldInReset = false
 
     fun reloadWorld() {
@@ -64,9 +62,14 @@ object ContentsTweaker {
         val time = measureTimeMillis {
             worldInReset = true
             val stream = ByteArrayOutputStream()
-            NetworkIO.writeWorld(Vars.player, stream)
-            NetworkIO.loadWorld(ByteArrayInputStream(stream.toByteArray()))
-            Vars.netClient.removed.clear()
+
+            val output = DataOutputStream(stream)
+            val writer = SaveIO.getSaveWriter()
+            writer.writeMap(output)
+
+            val input = DataInputStream(ByteArrayInputStream(stream.toByteArray()))
+            @Suppress("INACCESSIBLE_TYPE")
+            writer.readMap(input, Vars.world.context)
             worldInReset = false
         }
         Log.infoTag("ContentsTweaker", "Reload world costs $time ms")
