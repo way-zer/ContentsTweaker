@@ -1,5 +1,6 @@
 package cf.wayzer.contentsTweaker.resolvers
 
+import arc.util.Strings
 import cf.wayzer.contentsTweaker.CTNode
 import cf.wayzer.contentsTweaker.CTNodeTypeChecked
 import cf.wayzer.contentsTweaker.ContentsTweaker
@@ -32,6 +33,13 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
             node.getOrCreate(name).apply {
                 +CTNode.ObjInfo(it)
                 contentNodes[it] = this
+            }
+        }
+        node += object : CTNode.Indexable {
+            override fun resolveIndex(key: String): CTNode? = null
+            override fun resolve(name: String): CTNode? {
+                val normalize = Strings.camelToKebab(name)
+                return node.children[normalize]
             }
         }
     }

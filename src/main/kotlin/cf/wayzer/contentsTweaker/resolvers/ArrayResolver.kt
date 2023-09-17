@@ -16,9 +16,16 @@ object ArrayResolver : ContentsTweaker.NodeCollector {
             }
         }
         val list = objInfo.obj
-        list.forEachIndexed { index, item ->
+        list.take(10).forEachIndexed { index, item ->
             if (item != null)
                 node.getOrCreate("#$index") += CTNode.ObjInfo(item)
+        }
+        node += CTNode.Indexable { key ->
+            val i = key.toInt()
+            if (i >= list.size) return@Indexable null
+            node.getOrCreate("#${i}").apply {
+                extendOnce<CTNode.ObjInfo<Any?>>(CTNode.ObjInfo(list[i] ?: return@Indexable null))
+            }
         }
         modifier("-") { json ->
             val item = if (json.isNumber && json.asInt() < list.size) {
