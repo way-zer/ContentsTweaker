@@ -131,9 +131,8 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
             private val stack = mutableListOf<Pair<CTNode, String>>()
             val last get() = stack.last()
             fun getParents() = stack.map { it.first }
-            fun getId(node: CTNode? = null) {
+            fun getId(node: CTNode? = null) =
                 stack.takeWhile { it.first !== node }.joinToString(".") { it.second }
-            }
 
             fun resolve(node: CTNode, child: String): CTNode {
                 stack.add(node to child)
@@ -171,7 +170,7 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
             Root.collected = false
         }
 
-        fun handle(json: JsonValue, node: CTNode = Root) {
+        fun handle(json: JsonValue, node: CTNode = Root.collectAll()) {
             //部分简化,如果value不是object可省略=运算符
             if (!json.isObject && node.get<Modifier>() == null)
                 return handle(json, NodeStack.resolve(node, "="))
