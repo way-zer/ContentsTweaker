@@ -22,9 +22,9 @@ class ModMain : Mod() {
         Events.on(WorldLoadBeginEvent::class.java) {
             if (ContentsTweaker.worldInReset) return@on
             Call.serverPacketReliable("ContentsLoader|version", Vars.mods.getMod(javaClass).meta.version)
-            Vars.state.rules.tags.get("ContentsPatch")?.split(";")?.forEach { name ->
+            Vars.state.map.tags.get("ContentsPatch")?.split(";")?.forEach { name ->
                 if (name.isBlank()) return@forEach
-                val patch = Vars.state.rules.tags.get("CT@$name")
+                val patch = Vars.state.map.tags.get("CT@$name")
                     ?: return@forEach Call.serverPacketReliable("ContentsLoader|requestPatch", name)
                 ContentsTweaker.loadPatch(name, patch, doAfter = false)
             }
@@ -36,7 +36,7 @@ class ModMain : Mod() {
         }
         //TODO: Deprecated
         Vars.netClient.addPacketHandler("ContentsLoader|loadPatch") { name ->
-            val patch = Vars.state.rules.tags.get("CT@$name")
+            val patch = Vars.state.map.tags.get("CT@$name")
                 ?: return@addPacketHandler Call.serverPacketReliable("ContentsLoader|requestPatch", name)
             ContentsTweaker.loadPatch(name, patch)
         }
