@@ -1,16 +1,23 @@
 package cf.wayzer.contentsTweaker.resolvers
 
+import arc.struct.OrderedMap
 import arc.util.Strings
 import cf.wayzer.contentsTweaker.CTNode
 import cf.wayzer.contentsTweaker.CTNodeTypeChecked
 import cf.wayzer.contentsTweaker.ContentsTweaker
 import cf.wayzer.contentsTweaker.checkObjInfoOrNull
+import cf.wayzer.contentsTweaker.util.reflectDelegate
 import mindustry.Vars
 import mindustry.ctype.Content
 import mindustry.ctype.ContentType
 import mindustry.ctype.MappableContent
+import mindustry.ctype.UnlockableContent
+import mindustry.world.Block
+import mindustry.world.meta.Stats
 
 object MindustryContentsResolver : ContentsTweaker.NodeCollector {
+    private val Block.barMap: OrderedMap<*, *> by reflectDelegate()
+
     private val contentNodes = mutableMapOf<Content, CTNode>()
     override fun collectChild(node: CTNode) {
         if (node == CTNode.Root)
@@ -31,8 +38,13 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
         Vars.content.getBy<Content>(type).forEach {
             val name = if (it is MappableContent) it.name else "#${it.id}"
             node.getOrCreate(name).apply {
-                +CTNode.ObjInfo(it)
                 contentNodes[it] = this
+                +CTNode.ObjInfo(it)
+                +CTNode.AfterHandler {
+                    if (it is UnlockableContent)
+                        it.stats = Stats()
+                    it.init()
+                }
             }
         }
         node += object : CTNode.Indexable {

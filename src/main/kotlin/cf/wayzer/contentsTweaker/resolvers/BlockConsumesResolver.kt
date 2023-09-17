@@ -1,12 +1,15 @@
 package cf.wayzer.contentsTweaker.resolvers
 
+import arc.struct.Seq
 import arc.util.serialization.JsonValue
 import cf.wayzer.contentsTweaker.*
+import cf.wayzer.contentsTweaker.util.reflectDelegate
 import mindustry.type.ItemStack
 import mindustry.world.Block
 import mindustry.world.consumers.*
 
 object BlockConsumesResolver : ContentsTweaker.NodeCollector, TypeRegistry.Resolver {
+    private val Block.consumeBuilder: Seq<Consume> by reflectDelegate()
     override fun collectChild(node: CTNode) {
         val block = node.getObjInfo<Block>()?.obj ?: return
         node.getOrCreate("consumers").checkObjInfo<Array<Consume>>()
@@ -15,16 +18,9 @@ object BlockConsumesResolver : ContentsTweaker.NodeCollector, TypeRegistry.Resol
 
     private fun CTNodeTypeChecked<Array<Consume>>.extendConsumers(block: Block) {
         node += CTNode.AfterHandler {
-            block.apply {
-                consPower = consumers.filterIsInstance<ConsumePower>().firstOrNull()
-                optionalConsumers = consumers.filter { it.optional && !it.ignore() }.toTypedArray()
-                nonOptionalConsumers = consumers.filter { !it.optional && !it.ignore() }.toTypedArray()
-                updateConsumers = consumers.filter { it.update && !it.ignore() }.toTypedArray()
-                hasConsumers = consumers.isNotEmpty()
-                itemFilter.fill(false)
-                liquidFilter.fill(false)
-                consumers.forEach { it.apply(this) }
-                setBars()
+            block.consumeBuilder.apply {
+                clear()
+                addAll(*block.consumers)
             }
         }
         modifier("clearItems") { filterNot { it is ConsumeItems || it is ConsumeItemFilter }.toTypedArray() }
