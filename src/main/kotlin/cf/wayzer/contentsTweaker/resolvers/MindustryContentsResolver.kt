@@ -54,6 +54,10 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
                 return node.children[normalize]
             }
         }
+        if (type == ContentType.block)
+            node += CTNode.AfterHandler {
+                ContentsTweaker.reloadWorld()
+            }
     }
 
     private fun CTNodeTypeChecked<Content>.extend() {

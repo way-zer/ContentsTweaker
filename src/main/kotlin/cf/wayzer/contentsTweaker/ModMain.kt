@@ -20,6 +20,7 @@ class ModMain : Mod() {
         Events.on(ResetEvent::class.java) { ContentsTweaker.recoverAll() }
 
         Events.on(WorldLoadBeginEvent::class.java) {
+            if (ContentsTweaker.worldReloading) return@on
             Call.serverPacketReliable("ContentsLoader|version", Vars.mods.getMod(javaClass).meta.version)
             Vars.state.rules.tags.get("ContentsPatch")?.split(";")?.forEach { name ->
                 if (name.isBlank()) return@forEach

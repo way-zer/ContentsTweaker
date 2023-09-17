@@ -1,11 +1,17 @@
 package cf.wayzer.contentsTweaker
 
+import arc.struct.IntSet
 import arc.util.Log
 import arc.util.serialization.BaseJsonWriter
 import arc.util.serialization.JsonWriter
 import cf.wayzer.contentsTweaker.resolvers.*
+import cf.wayzer.contentsTweaker.util.reflectDelegate
 import mindustry.Vars
+import mindustry.core.NetClient
 import mindustry.io.JsonIO
+import mindustry.net.NetworkIO
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import kotlin.system.measureTimeMillis
 
 object ContentsTweaker {
@@ -29,7 +35,10 @@ object ContentsTweaker {
     )
 
     fun afterHandle() {
-        CTNode.PatchHandler.doAfterHandle()
+        val time = measureTimeMillis {
+            CTNode.PatchHandler.doAfterHandle()
+        }
+        Log.infoTag("ContentsTweaker", "Do afterHandle costs $time ms")
     }
 
     fun loadPatch(name: String, content: String, doAfter: Boolean = true) {
@@ -41,7 +50,23 @@ object ContentsTweaker {
     }
 
     fun recoverAll() {
+        if (worldReloading) return
         CTNode.PatchHandler.recoverAll()
+    }
+
+    private val NetClient.removed: IntSet by reflectDelegate()
+    var worldReloading = false
+
+    fun reloadWorld() {
+        val time = measureTimeMillis {
+            worldReloading = true
+            val stream = ByteArrayOutputStream()
+            NetworkIO.writeWorld(Vars.player, stream)
+            NetworkIO.loadWorld(ByteArrayInputStream(stream.toByteArray()))
+            Vars.netClient.removed.clear()
+            worldReloading = false
+        }
+        Log.infoTag("ContentsTweaker", "Reload world costs $time ms")
     }
 
     //Dev test, call from js
