@@ -18,9 +18,15 @@ object BlockConsumesResolver : ContentsTweaker.NodeCollector, TypeRegistry.Resol
 
     private fun CTNodeTypeChecked<Array<Consume>>.extendConsumers(block: Block) {
         node += CTNode.AfterHandler {
-            block.consumeBuilder.apply {
-                clear()
-                addAll(*block.consumers)
+            block.apply {
+                consPower = consumers.filterIsInstance<ConsumePower>().firstOrNull()
+                optionalConsumers = consumers.filter { it.optional && !it.ignore() }.toTypedArray()
+                nonOptionalConsumers = consumers.filter { !it.optional && !it.ignore() }.toTypedArray()
+                updateConsumers = consumers.filter { it.update && !it.ignore() }.toTypedArray()
+                hasConsumers = consumers.isNotEmpty()
+                itemFilter.fill(false)
+                liquidFilter.fill(false)
+                consumers.forEach { it.apply(this) }
             }
         }
         modifier("clearItems") { filterNot { it is ConsumeItems || it is ConsumeItemFilter }.toTypedArray() }
