@@ -17,6 +17,18 @@ import mindustry.world.meta.Stats
 
 object MindustryContentsResolver : ContentsTweaker.NodeCollector {
     private val Block.barMap: OrderedMap<*, *> by reflectDelegate()
+    private val healthReload = CTNode.AfterHandler {
+        if (Vars.world.isGenerating) return@AfterHandler
+        Vars.world.tiles.forEach {
+            val build = it.build ?: return@forEach
+            val oldMax = build.maxHealth
+            val max = build.block.health.toFloat()
+            if (oldMax == max) return@forEach
+            build.maxHealth = max
+            if (build.health == oldMax)
+                build.health = max
+        }
+    }
 
     private val contentNodes = mutableMapOf<Content, CTNode>()
     override fun collectChild(node: CTNode) {
@@ -50,6 +62,7 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
                         it.setBars()
                     }
                 }
+                +healthReload
             }
         }
         node += object : CTNode.Indexable {
@@ -59,10 +72,10 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
                 return node.children[normalize]
             }
         }
-        if (type == ContentType.block)
-            node += CTNode.AfterHandler {
-                ContentsTweaker.reloadWorld()
-            }
+//        if (type == ContentType.block)
+//            node += CTNode.AfterHandler {
+//                ContentsTweaker.reloadWorld()
+//            }
     }
 
     private fun CTNodeTypeChecked<Content>.extend() {
