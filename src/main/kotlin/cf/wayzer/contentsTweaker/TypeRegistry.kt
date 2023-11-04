@@ -7,6 +7,7 @@ import arc.util.serialization.Json
 import arc.util.serialization.JsonValue
 import cf.wayzer.contentsTweaker.util.reflectDelegate
 import mindustry.Vars
+import mindustry.ctype.MappableContent
 import mindustry.mod.ContentParser
 import mindustry.mod.Mods
 
@@ -48,6 +49,15 @@ object TypeRegistry {
         val method = ContentParser::class.java.getDeclaredMethod("resolve", String::class.java, Class::class.java)
         method.isAccessible = true
         return method.invoke(Vars.mods.parser, name, def) as Class<*>
+    }
+
+    fun getKeyString(obj: Any?): String {
+        return when (obj) {
+            is MappableContent -> obj.name
+            is Enum<*> -> obj.name
+            is Class<*> -> obj.name
+            else -> obj.toString()
+        }
     }
 
     private val ContentParser.contentTypes: ObjectMap<*, *> by reflectDelegate()

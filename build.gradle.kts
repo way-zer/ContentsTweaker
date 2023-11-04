@@ -2,12 +2,12 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm") version "1.8.20"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     `maven-publish`
 }
 
 group = "cf.wayzer"
-version = System.getenv().getOrDefault("VERSION", "2.0-SNAPSHOT")
+version = System.getenv().getOrDefault("VERSION", "3.0-SNAPSHOT")
 
 repositories {
     mavenCentral()
@@ -16,7 +16,10 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.TinyLake.MindustryX:core:v143.102")
+    compileOnly("com.github.Anuken.Arc:arc-core:v145")
+    compileOnly("com.github.anuken.mindustryjitpack:core:v145") {
+        exclude(group = "com.github.Anuken.Arc")
+    }
 }
 
 kotlin {
