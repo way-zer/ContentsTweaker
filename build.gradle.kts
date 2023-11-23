@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.8.20"
+    kotlin("jvm") version "1.9.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     `maven-publish`
 }
@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.Anuken.Arc:arc-core:v145")
+    compileOnly("com.github.Anuken.Arc:arc-core:v146")
     compileOnly("com.github.anuken.mindustryjitpack:core:v145") {
         exclude(group = "com.github.Anuken.Arc")
     }

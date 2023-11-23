@@ -124,6 +124,14 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
     companion object {
         private val resolvers = ContentsTweaker.resolvers
         val Root = CTNode()
+        val Nope = CTNode()
+
+        init {
+            Nope.apply {
+                +Modifier { }
+                +Indexable { Nope }
+            }
+        }
     }
 
     object PatchHandler {
