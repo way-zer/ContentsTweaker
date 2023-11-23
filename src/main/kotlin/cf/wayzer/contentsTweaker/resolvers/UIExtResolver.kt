@@ -51,10 +51,12 @@ import mindustry.ui.Styles
  * ```
  */
 object UIExtResolver : ContentsTweaker.NodeCollector {
-    class TableCellObj(val cell: Cell<*>) : CTNode.CTExtInfo
-
     override fun collectChild(node: CTNode) {
-        if (Vars.headless) return
+        if (Vars.headless) {
+            if (node == CTNode.Root)
+                node.children["uiExt"] = CTNode.Nope
+            return
+        }
         if (node == CTNode.Root) {
             node.getOrCreate("uiExt").apply {
                 +CTNode.ObjInfo(Core.scene.root)
@@ -66,36 +68,52 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
         }
         node.checkObjInfoOrNull<Element>()?.extend()
         node.checkObjInfoOrNull<Table>()?.extendTable()
+        node.checkObjInfoOrNull<Cell<*>>()?.extendCell()
     }
 
     private fun CTNodeTypeChecked<Element>.extend() {
         val obj = objInfo.obj
-        node.getOrCreate("+") += CTNode.Modifier {
-            val type = it.remove("type")?.asString() ?: error("Must provide Element type")
-            val id = '#' + it.getString("name")
-            val childNode = node.children[id] ?: createUIElement(type).let { element ->
-                node.getOrCreate(id).apply {
-                    +CTNode.ObjInfo(element)
-                    when (obj) {
-                        is Table -> +TableCellObj(obj.add(element))//TODO save cell
-                        is Group -> obj.addChild(element)
-                        else -> error("Only Group can add child element")
+        node += object : CTNode.Indexable {
+            override fun resolveIndex(key: String): CTNode? = null
+            override fun resolve(name: String): CTNode? {
+                if (name.length < 2 || name[0] != '+') return null
+                val idStart = name.indexOf('#')
+                check(idStart > 0) { "Must provide element id" }
+                val type = name.substring(1, idStart)
+                val id = name.substring(idStart)
+                return node.children[id] ?: createUIElement(type).let { element ->
+                    node.getOrCreate(id).apply {
+                        +CTNode.ObjInfo(element)
+                        when (obj) {
+                            is Table -> {
+                                val cell = obj.add(element)
+                                getOrCreate("cell") += CTNode.ObjInfo(cell)
+                            }
+
+                            is Group -> obj.addChild(element)
+                            else -> error("Only Group can add child element")
+                        }
                     }
                 }
             }
-            //通过PatchHandler设置子属性
-            CTNode.PatchHandler.handle(it, childNode)
+        }
+        node.getOrCreate("+") += CTNode.Modifier {
+            val type = it.remove("type")?.asString() ?: error("Must provide Element type")
+            val child = node.resolve("+$type#${it.getString("name")}")
+            CTNode.PatchHandler.handle(it, child)
         }
         node.getOrCreate("-") += CTNode.Modifier {
             val id = it.asString()
             check(id.startsWith('#')) { "Must provide element #id" }
             node.children[id]?.getObjInfo<Element>()?.obj?.remove()
+            node.children.remove(id)
         }
         extendModifiers()
     }
 
     private fun CTNodeTypeChecked<Table>.extendTable() {
         val obj = objInfo.obj
+        node.getOrCreate("row") += CTNode.Modifier { obj.row() }
         node.getOrCreate("align") += CTNode.Modifier {
             val v = if (it.isNumber) it.asInt() else alignMap[it.asString()] ?: error("invalid align: $it")
             obj.align(v)
@@ -133,12 +151,13 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
                     is TextButton -> obj.setText(v)
                 }
             }
-        node.get<TableCellObj>()?.cell?.let { cell ->
-            node.getOrCreate("pad") += CTNode.Modifier { json ->
-                val v = if (json.isNumber) json.asFloat().let { v -> FloatArray(4) { v } }
-                else json.asFloatArray()?.takeIf { it.size == 4 } ?: error("invalid pad: $json")
-                cell.pad(v[0], v[1], v[2], v[3])
-            }
+    }
+
+    private fun CTNodeTypeChecked<Cell<*>>.extendCell() {
+        node.getOrCreate("pad") += CTNode.Modifier { json ->
+            val v = if (json.isNumber) json.asFloat().let { v -> FloatArray(4) { v } }
+            else json.asFloatArray()?.takeIf { it.size == 4 } ?: error("invalid pad: $json")
+            objInfo.obj.pad(v[0], v[1], v[2], v[3])
         }
     }
 
@@ -149,7 +168,4 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
         "Label" -> Label("")
         else -> error("TODO: not support Element: $type")
     }
-//    class UIExtInfo : CTNode.CTExtInfo {
-//        val children = mutableMapOf<CTNode>()
-//    }
 }

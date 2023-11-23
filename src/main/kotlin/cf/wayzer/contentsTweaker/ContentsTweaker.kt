@@ -77,6 +77,12 @@ object ContentsTweaker {
 
     //Dev test, call from js
     @Suppress("unused")
+    fun eval(content: String) {
+        loadPatch("console", "{$content}")
+    }
+
+    //Dev test, call from js
+    @Suppress("unused")
     fun exportAll() {
         val visited = mutableSetOf<Any>()
         fun JsonWriter.writeNode(node: CTNode): BaseJsonWriter {
