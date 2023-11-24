@@ -65,12 +65,9 @@ object MindustryContentsResolver : ContentsTweaker.NodeCollector {
                 +healthReload
             }
         }
-        node += object : CTNode.Indexable {
-            override fun resolveIndex(key: String): CTNode? = null
-            override fun resolve(name: String): CTNode? {
-                val normalize = Strings.camelToKebab(name)
-                return node.children[normalize]
-            }
+        node += CTNode.IndexableRaw {
+            val normalize = Strings.camelToKebab(it)
+            node.children[normalize]
         }
 //        if (type == ContentType.block)
 //            node += CTNode.AfterHandler {

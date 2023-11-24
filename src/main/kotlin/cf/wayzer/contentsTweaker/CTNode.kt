@@ -39,7 +39,7 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
 
     fun resolve(name: String): CTNode {
         val node = children[name]
-            ?: getAll<Indexable>().firstNotNullOfOrNull { it.resolve(name) }
+            ?: getAll<IndexableRaw>().firstNotNullOfOrNull { it.resolve(name) }
             ?: error("Not found child $name")
         node.collectAll()
         return node
@@ -92,12 +92,16 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
         override fun reset() = setValue(info.obj)
     }
 
-    fun interface Indexable : CTExtInfo {
+    fun interface IndexableRaw : CTExtInfo {
+        fun resolve(name: String): CTNode?
+    }
+
+    fun interface Indexable : IndexableRaw {
         /** 解析索引,[key]已去除# */
         fun resolveIndex(key: String): CTNode?
 
         /** 通用的[name]索引(不一定以#开头) */
-        fun resolve(name: String): CTNode? {
+        override fun resolve(name: String): CTNode? {
             if (name.isEmpty() || name[0] != '#') return null
             return resolveIndex(name.substring(1))
         }
@@ -129,7 +133,7 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
         init {
             Nope.apply {
                 +Modifier { }
-                +Indexable { Nope }
+                +IndexableRaw { Nope }
             }
         }
     }
