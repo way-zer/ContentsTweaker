@@ -20,11 +20,11 @@ object ArrayResolver : ContentsTweaker.NodeCollector {
             if (item != null)
                 node.getOrCreate("#$index") += CTNode.ObjInfo(item)
         }
-        node += CTNode.Indexable { key ->
+        node += CTNode.IndexableRaw { key ->
             val i = key.toInt()
-            if (i >= list.size) return@Indexable null
+            if (i >= list.size) return@IndexableRaw null
             node.getOrCreate("#${i}").apply {
-                extendOnce<CTNode.ObjInfo<Any?>>(CTNode.ObjInfo(list[i] ?: return@Indexable null))
+                extendOnce<CTNode.ObjInfo<Any?>>(CTNode.ObjInfo(list[i] ?: return@IndexableRaw null))
             }
         }
         modifier("-") { json ->

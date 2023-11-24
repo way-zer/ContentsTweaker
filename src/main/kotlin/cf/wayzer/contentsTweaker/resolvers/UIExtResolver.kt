@@ -73,26 +73,23 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
 
     private fun CTNodeTypeChecked<Element>.extend() {
         val obj = objInfo.obj
-        node += object : CTNode.Indexable {
-            override fun resolveIndex(key: String): CTNode? = null
-            override fun resolve(name: String): CTNode? {
-                if (name.length < 2 || name[0] != '+') return null
-                val idStart = name.indexOf('#')
-                check(idStart > 0) { "Must provide element id" }
-                val type = name.substring(1, idStart)
-                val id = name.substring(idStart)
-                return node.children[id] ?: createUIElement(type).let { element ->
-                    node.getOrCreate(id).apply {
-                        +CTNode.ObjInfo(element)
-                        when (obj) {
-                            is Table -> {
-                                val cell = obj.add(element)
-                                getOrCreate("cell") += CTNode.ObjInfo(cell)
-                            }
-
-                            is Group -> obj.addChild(element)
-                            else -> error("Only Group can add child element")
+        node += CTNode.IndexableRaw { name ->
+            if (name.length < 2 || name[0] != '+') return@IndexableRaw null
+            val idStart = name.indexOf('#')
+            check(idStart > 0) { "Must provide element id" }
+            val type = name.substring(1, idStart)
+            val id = name.substring(idStart)
+            node.children[id] ?: createUIElement(type).let { element ->
+                node.getOrCreate(id).apply {
+                    +CTNode.ObjInfo(element)
+                    when (obj) {
+                        is Table -> {
+                            val cell = obj.add(element)
+                            getOrCreate("cell") += CTNode.ObjInfo(cell)
                         }
+
+                        is Group -> obj.addChild(element)
+                        else -> error("Only Group can add child element")
                     }
                 }
             }
