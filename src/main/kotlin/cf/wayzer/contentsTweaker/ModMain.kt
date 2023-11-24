@@ -22,7 +22,10 @@ class ModMain : Mod() {
         Events.on(WorldLoadBeginEvent::class.java) {
             if (ContentsTweaker.worldInReset) return@on
             Call.serverPacketReliable("ContentsLoader|version", Vars.mods.getMod(javaClass).meta.version)
-            Vars.state.map.tags.get("ContentsPatch")?.split(";")?.forEach { name ->
+            val list = Vars.state.map.tags.get("ContentsPatch")?.split(";")
+                ?: Vars.state.rules.tags.get("ContentsPatch")?.split(";")
+                ?: return@on
+            list.forEach { name ->
                 if (name.isBlank()) return@forEach
                 val patch = Vars.state.map.tags.get("CT@$name")
                     ?: return@forEach Call.serverPacketReliable("ContentsLoader|requestPatch", name)
