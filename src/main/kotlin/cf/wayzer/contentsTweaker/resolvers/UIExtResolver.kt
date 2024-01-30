@@ -1,8 +1,14 @@
 package cf.wayzer.contentsTweaker.resolvers
 
 import arc.Core
+import arc.func.Cons
+import arc.input.KeyCode
+import arc.math.geom.Vec2
 import arc.scene.Element
 import arc.scene.Group
+import arc.scene.event.ClickListener
+import arc.scene.event.InputEvent
+import arc.scene.event.InputListener
 import arc.scene.style.Drawable
 import arc.scene.ui.Button
 import arc.scene.ui.Label
@@ -12,6 +18,7 @@ import arc.scene.ui.TextButton
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
 import arc.util.Align
+import arc.util.Tmp
 import cf.wayzer.contentsTweaker.*
 import mindustry.Vars
 import mindustry.gen.Call
@@ -110,6 +117,7 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
 
     private fun CTNodeTypeChecked<Table>.extendTable() {
         val obj = objInfo.obj
+        node.getOrCreate("cellDefaults") += CTNode.ObjInfo(obj.defaults())
         node.getOrCreate("row") += CTNode.Modifier { obj.row() }
         node.getOrCreate("align") += CTNode.Modifier {
             val v = if (it.isNumber) it.asInt() else alignMap[it.asString()] ?: error("invalid align: $it")
@@ -122,11 +130,33 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
         }
     }
 
+    class DragHandler(private val element: Element) : InputListener() {
+        private val last = Vec2()
+        override fun touchDown(event: InputEvent, x: Float, y: Float, pointer: Int, button: KeyCode?): Boolean {
+            event.stop()
+            last.set(x, y)
+            return true
+        }
+
+        override fun touchDragged(event: InputEvent, x: Float, y: Float, pointer: Int) {
+            event.stop()
+            val v = element.localToStageCoordinates(Tmp.v1.set(x, y))
+            element.setPosition(v.x - last.x, v.y - last.y)
+            element.keepInStage()
+        }
+    }
+
     private fun CTNodeTypeChecked<Element>.extendModifiers() {
         val obj = objInfo.obj
-        node.getOrCreate("onClick") += CTNode.Modifier {
-            val message = it.asString()
-            obj.tapped { Call.sendChatMessage(message) }
+        node.getOrCreate("draggable") += CTNode.Modifier { json ->
+            obj.listeners.removeAll { it is DragHandler }
+            if (json.asBoolean())
+                obj.addListener(DragHandler(obj))
+        }
+        node.getOrCreate("onClick") += CTNode.Modifier { json ->
+            val message = json.asString()
+            obj.listeners.removeAll { it is ClickListener }
+            obj.clicked(Cons {}, Cons { Call.sendChatMessage(message) })
         }
 
         node.getOrCreate("style") += CTNode.Modifier {
@@ -148,6 +178,20 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
                     is TextButton -> obj.setText(v)
                 }
             }
+
+        if (obj is Label) {
+            node.getOrCreate("fontScale") += CTNode.Modifier { json ->
+                val v = if (json.isNumber) json.asFloat().let { v -> FloatArray(2) { v } }
+                else json.asFloatArray()?.takeIf { it.size == 2 } ?: error("invalid fontScale: $json")
+                obj.setFontScale(v[0], v[1])
+            }
+            node.getOrCreate("fontScaleX") += CTNode.Modifier {
+                obj.fontScaleX = it.asFloat()
+            }
+            node.getOrCreate("fontScaleY") += CTNode.Modifier {
+                obj.fontScaleY = it.asFloat()
+            }
+        }
     }
 
     //Reference arc.scene.ui.layout.Cell.clear
@@ -175,6 +219,7 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
     fun createUIElement(type: String): Element = when (type) {
         "Table" -> Table()
         "Label" -> Label("")
+        "TextButton" -> TextButton("")
         else -> error("TODO: not support Element: $type")
     }
 }
