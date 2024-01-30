@@ -16,21 +16,21 @@ object ReflectResolver : ContentsTweaker.NodeCollector {
 
     fun extend(node: CTNode, objInfo: CTNode.ObjInfo<*>, filter: (Field) -> Boolean = { Modifier.isPublic(it.modifiers) }) {
         val obj = objInfo.obj ?: return
-        runCatching { JsonIO.json.getFields(objInfo.type) }.getOrNull()
-            ?.filter { filter(it.value.field) }
-            ?.forEach { entry ->
-                val meta = entry.value
-                node.getOrCreate(entry.key).apply {
-                    var cls = meta.field.type
-                    if (cls.isAnonymousClass) cls = cls.superclass
-                    +CTNode.ObjInfo<Any?>(meta.field.get(obj), cls, meta.elementType, meta.keyType)
-                    +object : CTNode.Modifiable<Any?>(this) {
-                        override val currentValue: Any? get() = meta.field.get(obj)
-                        override fun setValue0(value: Any?) {
-                            meta.field.set(obj, value)
-                        }
+        val fields = runCatching { JsonIO.json.getFields(objInfo.type) }.getOrNull() ?: return
+        for (entry in fields) {
+            if (!filter(entry.value.field)) continue
+            val meta = entry.value
+            node.getOrCreate(entry.key).apply {
+                var cls = meta.field.type
+                if (cls.isAnonymousClass) cls = cls.superclass
+                +CTNode.ObjInfo<Any?>(meta.field.get(obj), cls, meta.elementType, meta.keyType)
+                +object : CTNode.Modifiable<Any?>(this) {
+                    override val currentValue: Any? get() = meta.field.get(obj)
+                    override fun setValue0(value: Any?) {
+                        meta.field.set(obj, value)
                     }
                 }
             }
+        }
     }
 }

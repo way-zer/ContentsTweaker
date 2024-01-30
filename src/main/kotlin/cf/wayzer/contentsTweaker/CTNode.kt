@@ -23,7 +23,11 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
     fun collectAll(): CTNode {
         if (collected) return this
         collected = true
-        resolvers.forEach { it.collectChild(this) }
+        for (resolver in resolvers) {
+            kotlin.runCatching { resolver.collectChild(this) }.onFailure { e ->
+                throw Exception("Fail to collectChild in $resolver", e)
+            }
+        }
         get<Modifiable<Any?>>()?.let { modifiable ->
             getOrCreate("=").apply {
                 +Modifier { json ->
