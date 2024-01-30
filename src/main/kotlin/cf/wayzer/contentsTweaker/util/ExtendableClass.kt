@@ -11,7 +11,7 @@ abstract class ExtendableClass<Ext : Any> {
     inline fun <reified T : Ext> get(): T? {
         if (this is T) return this
         return mixins.filterIsInstance<T>().let {
-            require(it.size <= 1) { "More than one ${T::class.java} mixin" }
+            require(it.size <= 1) { "More than one ${T::class.java} mixin: $it" }
             it.firstOrNull()
         }
     }
