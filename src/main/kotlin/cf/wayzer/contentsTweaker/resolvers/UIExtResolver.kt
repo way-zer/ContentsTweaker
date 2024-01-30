@@ -150,11 +150,23 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
             }
     }
 
+    //Reference arc.scene.ui.layout.Cell.clear
+    private val cellFields = setOf(
+        "minWidth", "maxWidth", "minHeight", "maxHeight",
+        "padTop", "padLeft", "padBottom", "padRight",
+        "fillX", "fillY", "expandX", "expandY", "uniformX", "uniformY", "align", "colspan",
+    )
+
     private fun CTNodeTypeChecked<Cell<*>>.extendCell() {
+        ReflectResolver.extend(node, objInfo) { it.name in cellFields }
         node.getOrCreate("pad") += CTNode.Modifier { json ->
             val v = if (json.isNumber) json.asFloat().let { v -> FloatArray(4) { v } }
             else json.asFloatArray()?.takeIf { it.size == 4 } ?: error("invalid pad: $json")
             objInfo.obj.pad(v[0], v[1], v[2], v[3])
+        }
+        node.getOrCreate("align") += CTNode.Modifier {
+            val v = if (it.isNumber) it.asInt() else alignMap[it.asString()] ?: error("invalid align: $it")
+            objInfo.obj.align(v)
         }
     }
 
