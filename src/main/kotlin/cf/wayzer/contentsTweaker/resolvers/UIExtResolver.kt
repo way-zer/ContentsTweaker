@@ -118,7 +118,10 @@ object UIExtResolver : ContentsTweaker.NodeCollector {
     private fun CTNodeTypeChecked<Table>.extendTable() {
         val obj = objInfo.obj
         node.getOrCreate("cellDefaults") += CTNode.ObjInfo(obj.defaults())
-        node.getOrCreate("row") += CTNode.Modifier { obj.row() }
+        node.getOrCreate("row") += CTNode.Modifier {
+            if (obj.cells.peek()?.isEndRow == false)
+                obj.row()
+        }
         node.getOrCreate("align") += CTNode.Modifier {
             val v = if (it.isNumber) it.asInt() else alignMap[it.asString()] ?: error("invalid align: $it")
             obj.align(v)
