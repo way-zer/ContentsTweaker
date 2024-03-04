@@ -1,0 +1,10 @@
+{
+  "name": "ContentsTweaker",
+  "displayName": "ContentsTweaker-内容包修改器",
+  "author": "WayZer",
+  "main": "cf.wayzer.contentsTweaker.ModMain",
+  "description": "Dynamic load custom contents patch account to server",
+  "version": "@version@",
+  "hidden": true,
+  "minGameVersion": 136
+}
