@@ -162,7 +162,7 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
         }
 
         val resetHandlers = mutableSetOf<Resettable>()
-        private val afterHandlers = mutableSetOf<AfterHandler>()
+        internal val afterHandlers = mutableSetOf<AfterHandler>()
 
         fun modified(modifiable: Modifiable<*>) {
             resetHandlers.add(modifiable)
