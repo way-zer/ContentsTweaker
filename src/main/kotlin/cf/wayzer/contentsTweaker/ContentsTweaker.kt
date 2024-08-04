@@ -34,6 +34,7 @@ object ContentsTweaker {
     )
 
     fun afterHandle() {
+        if (CTNode.PatchHandler.afterHandlers.isEmpty()) return
         val time = measureTimeMillis {
             CTNode.PatchHandler.doAfterHandle()
         }

@@ -33,15 +33,17 @@ class ModMain : Mod() {
             }
             ContentsTweaker.afterHandle()
         }
-        Vars.netClient.addPacketHandler("ContentsLoader|newPatch") {
-            val (name, content) = it.split('\n', limit = 2)
-            ContentsTweaker.loadPatch(name, content)
-        }
-        //TODO: Deprecated
-        Vars.netClient.addPacketHandler("ContentsLoader|loadPatch") { name ->
-            val patch = Vars.state.map.tags.get("CT@$name")
-                ?: return@addPacketHandler Call.serverPacketReliable("ContentsLoader|requestPatch", name)
-            ContentsTweaker.loadPatch(name, patch)
+        if (Vars.netClient != null) {
+            Vars.netClient.addPacketHandler("ContentsLoader|newPatch") {
+                val (name, content) = it.split('\n', limit = 2)
+                ContentsTweaker.loadPatch(name, content)
+            }
+            //TODO: Deprecated
+            Vars.netClient.addPacketHandler("ContentsLoader|loadPatch") { name ->
+                val patch = Vars.state.map.tags.get("CT@$name")
+                    ?: return@addPacketHandler Call.serverPacketReliable("ContentsLoader|requestPatch", name)
+                ContentsTweaker.loadPatch(name, patch)
+            }
         }
         Vars.mods.scripts.scope.apply {
             put("CT", this, ContentsTweaker)
