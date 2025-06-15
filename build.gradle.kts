@@ -51,38 +51,34 @@ val shadowTask: ShadowJar = tasks.withType(ShadowJar::class.java) {
     minimize()
 }.first()
 
-val jarAndroid by tasks.registering {
+val jarAndroid by tasks.registering(Exec::class) {
     dependsOn(shadowTask)
     val inFile = shadowTask.archiveFile.get().asFile
     val outFile = inFile.resolveSibling("${shadowTask.archiveBaseName.get()}-Android.jar")
     outputs.file(outFile)
-    doLast {
-        val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.")
 
-        val buildToolsDir = File(sdkRoot, "build-tools")
-        val d8Tool = buildToolsDir.listFiles()?.sortedDescending()
-            ?.flatMap { dir -> dir.listFiles()?.filter { it.name == "d8" || it.name == "d8.bat" } ?: emptyList() }
-            ?.firstOrNull()
-            ?: throw GradleException("No d8 found. Ensure that you have an Android build-tools installed (>= 28.0.0).")
-        val platformRoot = File(sdkRoot, "platforms").listFiles()
-            ?.sortedDescending()
-            ?.firstOrNull { File(it, "android.jar").exists() }
-            ?: throw GradleException("No android.jar found. Ensure that you have an Android platform installed.")
 
-        val androidJar = File(platformRoot, "android.jar")
-        val dependencies = (configurations.getByName("compileClasspath") +
-                configurations.getByName("runtimeClasspath") + files(androidJar)).files
-        val classpathArgs = dependencies.flatMap { listOf("--classpath", it.absolutePath) }
-        outFile.parentFile.mkdirs()
+    val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+    if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.")
 
-        // 使用 ProviderFactory.exec (推荐)
-        project.providers.exec {
-            commandLine = listOf(d8Tool.absolutePath) + classpathArgs +
-                    listOf("--min-api", "14", "--output", outFile.absolutePath, inFile.absolutePath)
-            workingDir(inFile.parentFile)
-        }.result.get().assertNormalExitValue()
-    }
+    val buildToolsDir = File(sdkRoot, "build-tools")
+    val d8Tool = buildToolsDir.listFiles()?.sortedDescending()
+        ?.flatMap { dir -> dir.listFiles()?.filter { it.name == "d8" || it.name == "d8.bat" } ?: emptyList() }
+        ?.firstOrNull()
+        ?: throw GradleException("No d8 found. Ensure that you have an Android build-tools installed (>= 28.0.0).")
+    val platformRoot = File(sdkRoot, "platforms").listFiles()
+        ?.sortedDescending()
+        ?.firstOrNull { File(it, "android.jar").exists() }
+        ?: throw GradleException("No android.jar found. Ensure that you have an Android platform installed.")
+    val androidJar = File(platformRoot, "android.jar")
+    val dependencies = (configurations.getByName("compileClasspath") +
+            configurations.getByName("runtimeClasspath") + files(androidJar)).files
+    val classpathArgs = dependencies.flatMap { listOf("--classpath", it.absolutePath) }
+
+    doFirst { outFile.parentFile.mkdirs() }
+    commandLine = listOf(d8Tool.absolutePath) + classpathArgs +
+            listOf("--min-api", "14", "--output", outFile.absolutePath, inFile.absolutePath)
+    workingDir(inFile.parentFile)
 }
 
 tasks.register("devInstall", Copy::class.java) {
@@ -94,8 +90,8 @@ tasks.register("devInstall", Copy::class.java) {
 tasks.register("dist", Jar::class.java) {
     dependsOn(shadowTask)
     dependsOn(jarAndroid)
-    from(zipTree(shadowTask.archiveFile.get()))
-    from(zipTree(jarAndroid.map { outputs.files.first() }))
+    from(shadowTask.archiveFile.map { zipTree(it) })
+    from(jarAndroid.map { zipTree(it.outputs.files.first()) })
     destinationDirectory.set(layout.buildDirectory.dir("dist"))
     archiveFileName.set("ContentsTweaker-${rootProject.version}.jar")
 }
