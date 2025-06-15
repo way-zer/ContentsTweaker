@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "2.1.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     `maven-publish`
 }
@@ -51,7 +51,7 @@ val shadowTask: ShadowJar = tasks.withType(ShadowJar::class.java) {
     minimize()
 }.first()
 
-val jarAndroid = tasks.create("jarAndroid") {
+val jarAndroid by tasks.registering {
     dependsOn(shadowTask)
     val inFile = shadowTask.archiveFile.get().asFile
     val outFile = inFile.resolveSibling("${shadowTask.archiveBaseName.get()}-Android.jar")
@@ -69,26 +69,26 @@ val jarAndroid = tasks.create("jarAndroid") {
         //collect dependencies needed for desugaring
         val dependencies = (configurations.compileClasspath.get() + configurations.runtimeClasspath.get() + platformRoot.resolve("android.jar"))
             .joinToString(" ") { "--classpath ${it.path}" }
-        exec {
+        providers.exec {
             commandLine("$d8Tool $dependencies --min-api 14 --output $outFile $inFile".split(" "))
             workingDir(inFile.parentFile)
             standardOutput = System.out
             errorOutput = System.err
-        }.assertNormalExitValue()
+        }.result.get().assertNormalExitValue()
     }
 }
 
-tasks.create("devInstall", Copy::class.java) {
+tasks.register("devInstall", Copy::class.java) {
     dependsOn(shadowTask)
     from(shadowTask.archiveFile.get())
     into(System.getenv("AppData") + "/mindustry/mods")
 }
 
-tasks.create("dist", Jar::class.java) {
+tasks.register("dist", Jar::class.java) {
     dependsOn(shadowTask)
     dependsOn(jarAndroid)
     from(zipTree(shadowTask.archiveFile.get()))
-    from(zipTree(jarAndroid.outputs.files.first()))
-    destinationDirectory.set(buildDir.resolve("dist"))
+    from(zipTree(jarAndroid.map { outputs.files.first() }))
+    destinationDirectory.set(layout.buildDirectory.dir("dist"))
     archiveFileName.set("ContentsTweaker-${rootProject.version}.jar")
 }
