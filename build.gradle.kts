@@ -60,21 +60,29 @@ val jarAndroid by tasks.registering {
         val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
         if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.")
 
-        val d8Tool = File("$sdkRoot/build-tools/").listFiles()?.sortedDescending()
-            ?.flatMap { dir -> (dir.listFiles().orEmpty()).filter { it.name.startsWith("d8") } }?.firstOrNull()
-            ?: throw GradleException("No d8 found. Ensure that you have an Android platform installed.")
-        val platformRoot = File("$sdkRoot/platforms/").listFiles()?.sortedDescending()?.firstOrNull { it.resolve("android.jar").exists() }
+        val buildToolsDir = File(sdkRoot, "build-tools")
+        val d8Tool = buildToolsDir.listFiles()?.sortedDescending()
+            ?.flatMap { dir -> dir.listFiles()?.filter { it.name == "d8" || it.name == "d8.bat" } ?: emptyList() }
+            ?.firstOrNull()
+            ?: throw GradleException("No d8 found. Ensure that you have an Android build-tools installed (>= 28.0.0).")
+        val platformRoot = File(sdkRoot, "platforms").listFiles()
+            ?.sortedDescending()
+            ?.firstOrNull { File(it, "android.jar").exists() }
             ?: throw GradleException("No android.jar found. Ensure that you have an Android platform installed.")
 
-        //collect dependencies needed for desugaring
-        val dependencies = (configurations.compileClasspath.get() + configurations.runtimeClasspath.get() + platformRoot.resolve("android.jar"))
-            .joinToString(" ") { "--classpath ${it.path}" }
-        providers.exec {
-            commandLine("$d8Tool $dependencies --min-api 14 --output $outFile $inFile".split(" "))
+        val androidJar = File(platformRoot, "android.jar")
+        val dependencies = (configurations.getByName("compileClasspath") +
+                configurations.getByName("runtimeClasspath") + files(androidJar)).files
+        val classpathArgs = dependencies.flatMap { listOf("--classpath", it.absolutePath) }
+        outFile.parentFile.mkdirs()
+
+        // 新方式：用 ExecOperations
+        val execOps = project.extensions.getByType(org.gradle.process.ExecOperations::class.java)
+        execOps.exec {
+            commandLine = listOf(d8Tool.absolutePath) + classpathArgs +
+                    listOf("--min-api", "14", "--output", outFile.absolutePath, inFile.absolutePath)
             workingDir(inFile.parentFile)
-            standardOutput = System.out
-            errorOutput = System.err
-        }.result.get().assertNormalExitValue()
+        }
     }
 }
 
