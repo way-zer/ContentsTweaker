@@ -28,9 +28,15 @@ object ObjectMapResolver : ContentsTweaker.NodeCollector {
         node += object : CTNode.Indexable {
             override fun resolveIndex(key: String): CTNode? {
                 val keyV = TypeRegistry.resolveType(JsonValue(key), keyType)
-                val value = map.get(keyV) ?: return null
+                val value = map.get(keyV)
+                val elementType = objInfo.elementType
+                if (value == null && elementType == null) return null
                 return node.getOrCreate("#" + TypeRegistry.getKeyString(keyV)).apply {
-                    extendOnce<CTNode.ObjInfo<Any?>>(CTNode.ObjInfo(value))
+                    if (value != null) {
+                        extendOnce<CTNode.ObjInfo<Any?>>(CTNode.ObjInfo(value))
+                    } else {
+                        extendOnce<CTNode.ObjInfo<Any?>>(CTNode.ObjInfo(null, elementType!!))
+                    }
                 }
             }
 

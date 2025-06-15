@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "2.1.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     `maven-publish`
 }
@@ -16,8 +16,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.Anuken.Arc:arc-core:v146")
-    compileOnly("com.github.anuken.mindustryjitpack:core:v145") {
+    compileOnly("com.github.Anuken.Arc:arc-core:v149")
+    compileOnly("com.github.anuken.mindustry:core:v149") {
         exclude(group = "com.github.Anuken.Arc")
     }
 }
@@ -51,44 +51,47 @@ val shadowTask: ShadowJar = tasks.withType(ShadowJar::class.java) {
     minimize()
 }.first()
 
-val jarAndroid = tasks.create("jarAndroid") {
+val jarAndroid by tasks.registering(Exec::class) {
     dependsOn(shadowTask)
     val inFile = shadowTask.archiveFile.get().asFile
     val outFile = inFile.resolveSibling("${shadowTask.archiveBaseName.get()}-Android.jar")
     outputs.file(outFile)
-    doLast {
-        val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.")
 
-        val d8Tool = File("$sdkRoot/build-tools/").listFiles()?.sortedDescending()
-            ?.flatMap { dir -> (dir.listFiles().orEmpty()).filter { it.name.startsWith("d8") } }?.firstOrNull()
-            ?: throw GradleException("No d8 found. Ensure that you have an Android platform installed.")
-        val platformRoot = File("$sdkRoot/platforms/").listFiles()?.sortedDescending()?.firstOrNull { it.resolve("android.jar").exists() }
-            ?: throw GradleException("No android.jar found. Ensure that you have an Android platform installed.")
 
-        //collect dependencies needed for desugaring
-        val dependencies = (configurations.compileClasspath.get() + configurations.runtimeClasspath.get() + platformRoot.resolve("android.jar"))
-            .joinToString(" ") { "--classpath ${it.path}" }
-        exec {
-            commandLine("$d8Tool $dependencies --min-api 14 --output $outFile $inFile".split(" "))
-            workingDir(inFile.parentFile)
-            standardOutput = System.out
-            errorOutput = System.err
-        }.assertNormalExitValue()
-    }
+    val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+    if (sdkRoot == null || !File(sdkRoot).exists()) throw GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.")
+
+    val buildToolsDir = File(sdkRoot, "build-tools")
+    val d8Tool = buildToolsDir.listFiles()?.sortedDescending()
+        ?.flatMap { dir -> dir.listFiles()?.filter { it.name == "d8" || it.name == "d8.bat" } ?: emptyList() }
+        ?.firstOrNull()
+        ?: throw GradleException("No d8 found. Ensure that you have an Android build-tools installed (>= 28.0.0).")
+    val platformRoot = File(sdkRoot, "platforms").listFiles()
+        ?.sortedDescending()
+        ?.firstOrNull { File(it, "android.jar").exists() }
+        ?: throw GradleException("No android.jar found. Ensure that you have an Android platform installed.")
+    val androidJar = File(platformRoot, "android.jar")
+    val dependencies = (configurations.getByName("compileClasspath") +
+            configurations.getByName("runtimeClasspath") + files(androidJar)).files
+    val classpathArgs = dependencies.flatMap { listOf("--classpath", it.absolutePath) }
+
+    doFirst { outFile.parentFile.mkdirs() }
+    commandLine = listOf(d8Tool.absolutePath) + classpathArgs +
+            listOf("--min-api", "14", "--output", outFile.absolutePath, inFile.absolutePath)
+    workingDir(inFile.parentFile)
 }
 
-tasks.create("devInstall", Copy::class.java) {
+tasks.register("devInstall", Copy::class.java) {
     dependsOn(shadowTask)
     from(shadowTask.archiveFile.get())
     into(System.getenv("AppData") + "/mindustry/mods")
 }
 
-tasks.create("dist", Jar::class.java) {
+tasks.register("dist", Jar::class.java) {
     dependsOn(shadowTask)
     dependsOn(jarAndroid)
-    from(zipTree(shadowTask.archiveFile.get()))
-    from(zipTree(jarAndroid.outputs.files.first()))
-    destinationDirectory.set(buildDir.resolve("dist"))
+    from(shadowTask.archiveFile.map { zipTree(it) })
+    from(jarAndroid.map { zipTree(it.outputs.files.first()) })
+    destinationDirectory.set(layout.buildDirectory.dir("dist"))
     archiveFileName.set("ContentsTweaker-${rootProject.version}.jar")
 }

@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: build MOD
         run: |
           export VERSION="beta-$GITHUB_RUN_NUMBER"
           ./gradlew dist
       - name: Upload MOD JAR
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: build/dist/*
