@@ -76,13 +76,12 @@ val jarAndroid by tasks.registering {
         val classpathArgs = dependencies.flatMap { listOf("--classpath", it.absolutePath) }
         outFile.parentFile.mkdirs()
 
-        // 新方式：用 ExecOperations
-        val execOps = project.extensions.getByType(org.gradle.process.ExecOperations::class.java)
-        execOps.exec {
+        // 使用 ProviderFactory.exec (推荐)
+        project.providers.exec {
             commandLine = listOf(d8Tool.absolutePath) + classpathArgs +
                     listOf("--min-api", "14", "--output", outFile.absolutePath, inFile.absolutePath)
             workingDir(inFile.parentFile)
-        }
+        }.result.get().assertNormalExitValue()
     }
 }
 
