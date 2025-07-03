@@ -4,7 +4,7 @@
   "author": "WayZer",
   "main": "cf.wayzer.contentsTweaker.ModMain",
   "description": "Dynamic load custom contents patch account to server",
-  "version": "@version@",
+  "version": "3.1.0",
   "hidden": true,
-  "minGameVersion": 136
+  "minGameVersion": 147
 }
