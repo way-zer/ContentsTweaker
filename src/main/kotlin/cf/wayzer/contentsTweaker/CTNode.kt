@@ -6,6 +6,7 @@ import arc.util.serialization.JsonWriter
 import cf.wayzer.contentsTweaker.CTNode.*
 import cf.wayzer.contentsTweaker.util.ExtendableClass
 import cf.wayzer.contentsTweaker.util.ExtendableClassDSL
+import java.util.*
 
 /**
  * 所有节点都是[CTNode]
@@ -45,8 +46,10 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
         val node = children[name]
             ?: getAll<IndexableRaw>().firstNotNullOfOrNull { it.resolve(name) }
             ?: error("Not found child $name")
-        node.collectAll()
-        return node
+        //If it's a duplicate Node for object, only Modifiers are accessible.
+        if (get<ObjInfo<*>>()?.isDuplicated == true && node.get<Modifier>() == null)
+            error("Duplicated Object Node, cannot visit children")
+        return node.collectAll()
     }
 
     /** 供[ContentsTweaker.NodeCollector]使用，解析清使用[resolve]*/
@@ -61,7 +64,13 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
         val elementType: Class<*>? = null, // List.T or Map.V
         val keyType: Class<*>? = null // Map.K
     ) : CTExtInfo {
+        val isDuplicated = duplicatedObjects.put(obj, Unit) != null
+
         constructor(obj: T & Any) : this(obj, obj::class.java)
+
+        companion object {
+            val duplicatedObjects = IdentityHashMap<Any, Unit>()
+        }
     }
 
     fun interface Resettable : CTExtInfo {
@@ -184,6 +193,7 @@ class CTNode private constructor() : ExtendableClass<CTExtInfo>() {
 
             Root.children.clear()
             Root.collected = false
+            ObjInfo.duplicatedObjects.clear()
         }
 
         fun handle(json: JsonValue, node: CTNode = Root.collectAll()) {
