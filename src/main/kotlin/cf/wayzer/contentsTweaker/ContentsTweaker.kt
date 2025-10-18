@@ -2,6 +2,7 @@ package cf.wayzer.contentsTweaker
 
 import arc.util.Log
 import arc.util.serialization.BaseJsonWriter
+import arc.util.serialization.JsonValue
 import arc.util.serialization.JsonWriter
 import cf.wayzer.contentsTweaker.resolvers.*
 import mindustry.Vars
@@ -43,7 +44,13 @@ object ContentsTweaker {
 
     fun loadPatch(name: String, content: String, doAfter: Boolean = true) {
         val time = measureTimeMillis {
-            CTNode.PatchHandler.handle(JsonIO.read(null, content))
+            val data = try {
+                JsonIO.read<Any>(null, content) as JsonValue
+            } catch (e: Exception) {
+                Log.err("[ContentsTweaker]Failed to parse patch for '$name': $content", e)
+                return
+            }
+            CTNode.PatchHandler.handle(data)
             if (doAfter) afterHandle()
         }
         Log.infoTag("ContentsTweaker", "Load Content Patch '$name' costs $time ms")

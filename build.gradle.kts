@@ -16,8 +16,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.Anuken.Arc:arc-core:v149")
-    compileOnly("com.github.anuken.mindustry:core:v149") {
+    compileOnly("com.github.Anuken.Arc:arc-core:v152")
+    compileOnly("com.github.anuken.mindustry:core:v152") {
         exclude(group = "com.github.Anuken.Arc")
     }
 }
